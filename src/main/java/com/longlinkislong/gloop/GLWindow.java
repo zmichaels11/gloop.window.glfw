@@ -1,7 +1,27 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/* 
+ * Copyright (c) 2015, Zachary Michaels
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.longlinkislong.gloop;
 
@@ -44,6 +64,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+import com.runouw.util.Lazy;
 
 /**
  * A GLWindow represents a window that handles OpenGL drawing.
@@ -167,7 +188,7 @@ public class GLWindow {
         LOGGER.debug(GLFW_MARKER, "OpenGL context.bits=[red={}, green={}, blue={}, alpha={}, depth={}, stencil={}]", OPENGL_RED_BITS, OPENGL_GREEN_BITS, OPENGL_BLUE_BITS, OPENGL_ALPHA_BITS, OPENGL_DEPTH_BITS, OPENGL_STENCIL_BITS);
 
         if (GLFW.glfwInit() != GL_TRUE) {
-            throw new GLException("Could not initialize GLFW!");
+            throw new GLFWException("Could not initialize GLFW!");
         } else {
             LOGGER.trace(GLFW_MARKER, "GLFW successfully initialized!");
         }
@@ -318,13 +339,13 @@ public class GLWindow {
      * may own up to one mouse object.
      *
      * @return the mouse object.
-     * @throws GLException if the window is not initialized.
+     * @throws GLFWException if the window is not initialized.
      * @see
      * <a href="http://www.glfw.org/docs/latest/input.html#input_mouse">GLFW
      * Mouse Input</a>
      * @since 15.06.24
      */
-    public GLMouse getMouse() throws GLException {
+    public GLMouse getMouse() throws GLFWException {
         return new MouseQuery().glCall(this.getGLThread());
     }
 
@@ -338,7 +359,7 @@ public class GLWindow {
         @Override
         public GLMouse call() throws Exception {
             if (!GLWindow.this.isValid()) {
-                throw new GLException("GLWindow is not valid!");
+                throw new GLFWException("GLWindow is not valid!");
             }
 
             return GLWindow.this.mouse.get();
@@ -361,13 +382,13 @@ public class GLWindow {
      * Retrieves the keyboard object associated with the window.
      *
      * @return the keyboard object
-     * @throws GLException if the window is not initialized.
+     * @throws GLFWException if the window is not initialized.
      * @see
      * <a href="http://www.glfw.org/docs/latest/input.html#input_keyboard">GLFW
      * Keyboard Input</a>
      * @since 15.06.07
      */
-    public GLKeyboard getKeyboard() throws GLException {
+    public GLKeyboard getKeyboard() throws GLFWException {
         return new KeyboardQuery().glCall(this.getGLThread());
     }
 
@@ -381,7 +402,7 @@ public class GLWindow {
         @Override
         public GLKeyboard call() throws Exception {
             if (!GLWindow.this.isValid()) {
-                throw new GLException("Invalid GLWindow!");
+                throw new GLFWException("Invalid GLWindow!");
             }
 
             return GLWindow.this.keyboard.get();
@@ -393,14 +414,14 @@ public class GLWindow {
      * Sets the clipboard string.
      *
      * @param seq the string to set
-     * @throws GLException if the window is not initialized.
+     * @throws GLFWException if the window is not initialized.
      * @see <a href="http://www.glfw.org/docs/latest/input.html#clipboard">GLFW
      * Clipboard Input and Output</a>
      * @since 15.06.07
      */
-    public void setClipboardString(final CharSequence seq) throws GLException {
+    public void setClipboardString(final CharSequence seq) throws GLFWException {
         if (!this.isValid()) {
-            throw new GLException("Invalid GLWindow!");
+            throw new GLFWException("Invalid GLWindow!");
         }
 
         LOGGER.trace(GLFW_MARKER, "GLWindow[{}].clipboard = {}", GLWindow.this.title, seq);
@@ -411,14 +432,14 @@ public class GLWindow {
      * Retrieves the clipboard string
      *
      * @return the clipboard string
-     * @throws GLException if the window is not initialized.
+     * @throws GLFWException if the window is not initialized.
      * @see <a href="http://www.glfw.org/docs/latest/input.html#clipboard">GLFW
      * Clipboard Input and Output</a>
      * @since 15.06.07
      */
-    public String getClipboardString() throws GLException {
+    public String getClipboardString() throws GLFWException {
         if (!this.isValid()) {
-            throw new GLException("Invalid GLWindow!");
+            throw new GLFWException("Invalid GLWindow!");
         }
 
         return GLFW.glfwGetClipboardString(this.window);
@@ -449,10 +470,10 @@ public class GLWindow {
      * Retrieves the DPI of the monitor displaying the window.
      *
      * @return the DPI
-     * @throws GLException if the window has not been initialized.
+     * @throws GLFWException if the window has not been initialized.
      * @since 15.06.07
      */
-    public double getDPI() throws GLException {
+    public double getDPI() throws GLFWException {
         return new DPIQuery().glCall(this.getGLThread());
     }
 
@@ -461,7 +482,7 @@ public class GLWindow {
         @Override
         public Double call() throws Exception {
             if (!GLWindow.this.isValid()) {
-                throw new GLException("GLWindow is not valid!");
+                throw new GLFWException("GLWindow is not valid!");
             }
 
             final long mHandle = GLFW.glfwGetWindowMonitor(GLWindow.this.monitor);
@@ -511,7 +532,7 @@ public class GLWindow {
                     sharedContextHandle);
 
             if (GLWindow.this.window == NULL) {
-                throw new GLException("Failed to create the GLFW window!");
+                throw new GLFWException("Failed to create the GLFW window!");
             }
 
             GLFW.glfwMakeContextCurrent(GLWindow.this.window);
@@ -590,7 +611,7 @@ public class GLWindow {
             final long newWindow = GLFW.glfwCreateWindow(width, height, title, monitor, GLWindow.this.window);
 
             if (newWindow == NULL) {
-                throw new GLException("Failed to create the GLFW window!");
+                throw new GLFWException("Failed to create the GLFW window!");
             }
 
             GLFW.glfwDestroyWindow(GLWindow.this.window);
@@ -668,7 +689,7 @@ public class GLWindow {
         @Override
         public void run() {
             if (!GLWindow.this.isValid()) {
-                throw new GLException("GLWindow is not valid!");
+                throw new GLFWException("GLWindow is not valid!");
             }
 
             if (this.visibility) {
@@ -686,11 +707,11 @@ public class GLWindow {
      *
      * @param width the width of the window
      * @param height the height of the window
-     * @throws GLException if the window is invalid or an invalid width or
+     * @throws GLFWException if the window is invalid or an invalid width or
      * height was provided.
      * @since 15.06.07
      */
-    public void setSize(final int width, final int height) throws GLException {
+    public void setSize(final int width, final int height) throws GLFWException {
         new SetWindowSizeTask(width, height).glRun(this.getGLThread());
     }
 
@@ -701,18 +722,18 @@ public class GLWindow {
 
         public SetWindowSizeTask(final int width, final int height) {
             if ((this.width = width) < 0) {
-                throw new GLException("Cannot set window width to less than 0!");
+                throw new GLFWException("Cannot set window width to less than 0!");
             }
 
             if ((this.height = height) < 0) {
-                throw new GLException("Cannot set window height to less than 0!");
+                throw new GLFWException("Cannot set window height to less than 0!");
             }
         }
 
         @Override
         public void run() {
             if (!GLWindow.this.isValid()) {
-                throw new GLException("GLWindow is not valid!");
+                throw new GLFWException("GLWindow is not valid!");
             }
 
             GLFW.glfwSetWindowSize(GLWindow.this.window, this.width, this.height);
@@ -725,10 +746,10 @@ public class GLWindow {
      * Retrieves the width of the back buffer.
      *
      * @return the back buffer width.
-     * @throws GLException if the window is not initialized.
+     * @throws GLFWException if the window is not initialized.
      * @since 15.06.07
      */
-    public final int getFramebufferWidth() throws GLException {
+    public final int getFramebufferWidth() throws GLFWException {
         final GLQuery<int[]> sizeQuery = new FramebufferSizeQuery();
 
         return sizeQuery.glCall(this.getGLThread())[GLTools.WIDTH];
@@ -738,10 +759,10 @@ public class GLWindow {
      * Retrieves the height of the back buffer.
      *
      * @return the back buffer height
-     * @throws GLException if the window is not initialized.
+     * @throws GLFWException if the window is not initialized.
      * @since 15.06.07
      */
-    public final int getFramebufferHeight() throws GLException {
+    public final int getFramebufferHeight() throws GLFWException {
         final GLQuery<int[]> sizeQuery = new FramebufferSizeQuery();
 
         return sizeQuery.glCall(this.getGLThread())[GLTools.HEIGHT];
@@ -757,7 +778,7 @@ public class GLWindow {
         @Override
         public int[] call() throws Exception {
             if (!GLWindow.this.isValid()) {
-                throw new GLException("GLWindow is not valid!");
+                throw new GLFWException("GLWindow is not valid!");
             }
 
             final ByteBuffer width = NativeTools.getInstance().nextWord();
@@ -805,10 +826,10 @@ public class GLWindow {
      * Retrieves the x-position of the top-left of the window.
      *
      * @return the top-left x coordinate in screen space.
-     * @throws GLException if the the window is not initialized.
+     * @throws GLFWException if the the window is not initialized.
      * @since 15.06.07
      */
-    public int getX() throws GLException {        
+    public int getX() throws GLFWException {        
         return new WindowPositionQuery().glCall(this.getGLThread())[GLTools.X];
     }
 
@@ -816,10 +837,10 @@ public class GLWindow {
      * Retrieves the y-position of the top-left of the window.
      *
      * @return the top-left y coordinate in screen space.
-     * @throws GLException if the window has not been initialized.
+     * @throws GLFWException if the window has not been initialized.
      * @since 15.06.07
      */
-    public int getY() throws GLException {        
+    public int getY() throws GLFWException {        
         return new WindowPositionQuery().glCall(this.getGLThread())[GLTools.Y];
     }
 
@@ -833,7 +854,7 @@ public class GLWindow {
         @Override
         public int[] call() throws Exception {
             if (!GLWindow.this.isValid()) {
-                throw new GLException("GLWindow is not valid!");
+                throw new GLFWException("GLWindow is not valid!");
             }
 
             final ByteBuffer x = NativeTools.getInstance().nextWord();
@@ -849,7 +870,7 @@ public class GLWindow {
         @Override
         public int[] call() throws Exception {
             if (!GLWindow.this.isValid()) {
-                throw new GLException("GLWindow is not valid!");
+                throw new GLFWException("GLWindow is not valid!");
             }
 
             final ByteBuffer l = NativeTools.getInstance().nextWord();
@@ -867,7 +888,7 @@ public class GLWindow {
      * Retrieves the width of the window.
      *
      * @return the window width
-     * @throws GLException if the window has not been initialized.
+     * @throws GLFWException if the window has not been initialized.
      * @since 15.06.05
      */
     public int getWidth() {        
@@ -894,10 +915,10 @@ public class GLWindow {
      * Retrieves the height of the window.
      *
      * @return the height of the window.
-     * @throws GLException if the window has not been initialized.
+     * @throws GLFWException if the window has not been initialized.
      * @since 15.06.05
      */
-    public int getHeight() throws GLException {
+    public int getHeight() throws GLFWException {
         final GLQuery<int[]> sizeQuery = this.new WindowSizeQuery();
 
         return sizeQuery.glCall(this.getGLThread())[GLTools.HEIGHT];
@@ -913,7 +934,7 @@ public class GLWindow {
         @Override
         public int[] call() throws Exception {
             if (!GLWindow.this.isValid()) {
-                throw new GLException("GLWindow is not valid!");
+                throw new GLFWException("GLWindow is not valid!");
             }
             final ByteBuffer w = NativeTools.getInstance().nextWord();
             final ByteBuffer h = NativeTools.getInstance().nextWord();            
@@ -940,12 +961,12 @@ public class GLWindow {
     /**
      * Executes an update task on the default thread.
      *
-     * @throws GLException if the window is invalid.
+     * @throws GLFWException if the window is invalid.
      * @since 15.06.05
      */
-    public void update() throws GLException {
+    public void update() throws GLFWException {
         if (!this.isValid()) {
-            throw new GLException("Invalid GLWindow!");
+            throw new GLFWException("Invalid GLWindow!");
         }
         this.updateTask.glRun(this.getGLThread());
     }
@@ -987,7 +1008,7 @@ public class GLWindow {
         @Override
         public void run() {
             if (!GLWindow.this.isValid()) {
-                throw new GLException("GLWindow is not valid!");
+                throw new GLFWException("GLWindow is not valid!");
             }
 
             LOGGER.trace(GLFW_MARKER, "Closing GLWindow[{}]", GLWindow.this.title);
@@ -1002,12 +1023,12 @@ public class GLWindow {
         this.cleanupTasks.clear();
         this.workerThreads.forEach(GLWindow::stop);
 
-        this.cursorEnterCallback.ifPresent(GLFWCursorEnterCallback::release);
-        this.cursorPosCallback.ifPresent(GLFWCursorPosCallback::release);
-        this.keyCallback.ifPresent(GLFWKeyCallback::release);
-        this.charCallback.ifPresent(GLFWCharCallback::release);
-        this.mouseButtonCallback.ifPresent(GLFWMouseButtonCallback::release);
-        this.scrollCallback.ifPresent(GLFWScrollCallback::release);
+        this.cursorEnterCallback.ifInitialized(GLFWCursorEnterCallback::release);
+        this.cursorPosCallback.ifInitialized(GLFWCursorPosCallback::release);
+        this.keyCallback.ifInitialized(GLFWKeyCallback::release);
+        this.charCallback.ifInitialized(GLFWCharCallback::release);
+        this.mouseButtonCallback.ifInitialized(GLFWMouseButtonCallback::release);
+        this.scrollCallback.ifInitialized(GLFWScrollCallback::release);
         this.resizeCallback.ifPresent(GLFWFramebufferSizeCallback::release);
         this.onClose.ifPresent(Runnable::run);
 
@@ -1042,12 +1063,12 @@ public class GLWindow {
      * shared context with the window.
      *
      * @return the new worker thread.
-     * @throws GLException if the window is invalid.
+     * @throws GLFWException if the window is invalid.
      * @since 15.06.05
      */
-    public GLThread newWorkerThread() throws GLException {
+    public GLThread newWorkerThread() throws GLFWException {
         if (!this.isValid()) {
-            throw new GLException("Invalid GLWindow!");
+            throw new GLFWException("Invalid GLWindow!");
         }
         final GLWindow dummy = new GLWindow(0, 0, "WORKER", this);
 
@@ -1138,7 +1159,7 @@ public class GLWindow {
         @Override
         public void framebufferResizedActionPerformed(GLWindow window, GLViewport view) {
             if (!window.getGLThread().viewportStack.isEmpty()) {
-                throw new GLException("Viewport stack is not empty on Window Resize event!");
+                throw new GLFWException("Viewport stack is not empty on Window Resize event!");
             }
 
             view.applyViewport();

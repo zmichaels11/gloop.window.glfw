@@ -1,13 +1,30 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/* 
+ * Copyright (c) 2015, Zachary Michaels
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.longlinkislong.gloop;
 
-import com.longlinkislong.gloop.GLException;
-import com.longlinkislong.gloop.GLVec2D;
-import com.longlinkislong.gloop.NativeTools;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,14 +55,14 @@ public class GLMouse implements GLMouseEnteredListener, GLMousePositionListener,
      *
      * @param x the new x-location
      * @param y the new y-location
-     * @throws GLException if the window is not initialized.
+     * @throws GLFWException if the window is not initialized.
      * @since 15.06.07
      */
     public void setMousePosition(final double x, final double y)
-            throws GLException {
+            throws GLFWException {
 
         if (!this.window.isValid()) {
-            throw new GLException("Invalid window!");
+            throw new GLFWException("Invalid window!");
         }
 
         GLFW.glfwSetCursorPos(this.window.window, x, y);
@@ -71,12 +88,12 @@ public class GLMouse implements GLMouseEnteredListener, GLMousePositionListener,
      * Retrieves the current cursor position
      *
      * @return the current cursor position
-     * @throws GLException if the window is not initialized.
+     * @throws GLFWException if the window is not initialized.
      * @since 15.06.07
      */
-    public GLVec2D getMousePosition() throws GLException {
+    public GLVec2D getMousePosition() throws GLFWException {
         if (!this.window.isValid()) {
-            throw new GLException("Invalid GLWindow!");
+            throw new GLFWException("Invalid GLWindow!");
         }
 
         final ByteBuffer xPos = NativeTools.getInstance().nextDWord();
@@ -93,14 +110,14 @@ public class GLMouse implements GLMouseEnteredListener, GLMousePositionListener,
      *
      * @param button the mouse button
      * @return the value
-     * @throws GLException if the window is not initialized.
+     * @throws GLFWException if the window is not initialized.
      * @since 15.06.07
      */
     public GLMouseButtonAction getMouseButton(final int button)
-            throws GLException {
+            throws GLFWException {
 
         if (!this.window.isValid()) {
-            throw new GLException("Invalid GLWindow!");
+            throw new GLFWException("Invalid GLWindow!");
         }
 
         return GLMouseButtonAction.valueOf(
@@ -219,9 +236,7 @@ public class GLMouse implements GLMouseEnteredListener, GLMousePositionListener,
 
         this.mouseEnteredListeners
                 .forEach(
-                        l -> l.mouseEnteredActionPerformed(
-                                window,
-                                status));
+                        l -> l.mouseEnteredActionPerformed(window, status));
     }
 
     @Override
@@ -229,17 +244,13 @@ public class GLMouse implements GLMouseEnteredListener, GLMousePositionListener,
             final GLWindow window, final double x, final double y) {
 
         this.mousePositionListeners.forEach(
-                l -> l.mousePositionActionPerformed(
-                        window,
-                        x, y));
+                l -> l.mousePositionActionPerformed(window, x, y));
     }
 
     @Override
     public void mouseScrollActionPerformed(GLWindow window, double xOffset, double yOffset) {
         this.mouseScrollListeners.forEach(
-                l -> l.mouseScrollActionPerformed(
-                        window,
-                        xOffset, yOffset));
+                l -> l.mouseScrollActionPerformed(window, xOffset, yOffset));
     }
 
 }
