@@ -1,0 +1,54 @@
+if(!project.hasProperty('artifactoryUser') || !project.hasProperty('artifactoryPassword')) {
+    System.err.println 'artifactoryUser or artifactoryPassword is not defined! artifactoryPublish will be disabled.'   
+} else {
+    artifactory {
+        contextUrl = 'http://jartifacts.longlinkislong.com'
+        publish {
+            repository {
+                repoKey = "libs-release-local"
+                username = "${artifactoryUser}"
+                password = "${artifactoryPassword}"
+                maven = true
+            }
+            defaults {
+                publications ('mavenJava')
+            }
+        }    
+    }
+}
+
+task packageJavadoc(type: Jar, dependsOn: 'javadoc') {
+    from javadoc.destinationDir
+    classifier = 'javadoc'
+}
+
+task packageSources(type: Jar, dependsOn: 'classes') {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+ 
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            
+            artifact(packageSources)
+            artifact(packageJavadoc)
+            
+            groupId = "${group}"
+            
+            // get version number for outputting to artifactory
+            version = "${versionUrl}?name=${project.name}".toURL().text.trim()
+        }    
+    }
+}
+task incrementBuild << {        
+    def version = "${versionUrl}?name=${project.name}&increment=1".toURL().text.trim()
+    
+    println "incremented build to $version"
+}
+
+task version << {
+    def version = "${versionUrl}?name=${project.name}".toURL().text.trim()
+    println version
+}
