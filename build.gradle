@@ -21,7 +21,16 @@ def getProjectVersion(projId) {
 
 dependencies {        
     compile 'org.slf4j:slf4j-api:1.7.+'
-    compile "com.longlinkislong:gloop:${getProjectVersion('gloop')}"
+    
+    def gloopSubProj = file('../core')
+    
+    if(gloopSubProj.exists()) {                
+        compile files('../core/build/libs/gloop-15.08-SNAPSHOT.jar')
+    } else {   
+        compile "com.longlinkislong:gloop:${getProjectVersion('gloop')}"    
+    }
+    
+    compile "com.longlinkislong:gloop-vectors:${getProjectVersion('gloop-vectors')}"
     compile "com.runouw:wrappers:${getProjectVersion('wrappers')}"
     
     compile "org.lwjgl:lwjgl:3.0.0a"

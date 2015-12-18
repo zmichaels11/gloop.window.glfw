@@ -29,6 +29,7 @@ package com.longlinkislong.gloop;
  *
  * @author zmichaels
  */
+@SuppressWarnings("serial")
 public class GLFWException extends GLException {
     public GLFWException() {
         super();
