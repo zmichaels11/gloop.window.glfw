@@ -172,18 +172,18 @@ public class GLWindow {
 
     static {
         NativeTools.getInstance().autoLoad();
-        final String glVersion = System.getProperty("com.longlinkislong.gloop.opengl.version", "3.2");
+        final String glVersion = System.getProperty("gloop.opengl.version", "3.2");
         OPENGL_VERSION_MAJOR = Integer.parseInt(glVersion.substring(0, glVersion.indexOf(".")));
         OPENGL_VERSION_MINOR = Integer.parseInt(glVersion.substring(glVersion.indexOf(".") + 1));
-        OPENGL_REFRESH_RATE = Integer.getInteger("com.longlinkislong.gloop.opengl.refresh_rate", -1);
-        OPENGL_SWAP_INTERVAL = Integer.getInteger("com.longlinkislong.gloop.opengl.swap_interval", 1);
-        OPENGL_SAMPLES = Integer.getInteger("com.longlinkislong.gloop.opengl.msaa", -1);
-        OPENGL_RED_BITS = Integer.getInteger("com.longlinkislong.gloop.opengl.red_bits", 8);
-        OPENGL_GREEN_BITS = Integer.getInteger("com.longlinkislong.gloop.opengl.green_bits", 8);
-        OPENGL_BLUE_BITS = Integer.getInteger("com.longlinkislong.gloop.opengl.blue_bits", 8);
-        OPENGL_ALPHA_BITS = Integer.getInteger("com.longlinkislong.gloop.opengl.alpha_bits", 8);
-        OPENGL_DEPTH_BITS = Integer.getInteger("com.longlinkislong.gloop.opengl.depth_bits", 24);
-        OPENGL_STENCIL_BITS = Integer.getInteger("com.longlinkislong.gloop.opengl.stencil_bits", 8);
+        OPENGL_REFRESH_RATE = Integer.getInteger("gloop.opengl.refresh_rate", -1);
+        OPENGL_SWAP_INTERVAL = Integer.getInteger("gloop.opengl.swap_interval", 1);
+        OPENGL_SAMPLES = Integer.getInteger("gloop.opengl.msaa", -1);
+        OPENGL_RED_BITS = Integer.getInteger("gloop.opengl.red_bits", 8);
+        OPENGL_GREEN_BITS = Integer.getInteger("gloop.opengl.green_bits", 8);
+        OPENGL_BLUE_BITS = Integer.getInteger("gloop.opengl.blue_bits", 8);
+        OPENGL_ALPHA_BITS = Integer.getInteger("gloop.opengl.alpha_bits", 8);
+        OPENGL_DEPTH_BITS = Integer.getInteger("gloop.opengl.depth_bits", 24);
+        OPENGL_STENCIL_BITS = Integer.getInteger("gloop.opengl.stencil_bits", 8);
 
         if (GLFW.glfwInit() != GL_TRUE) {
             throw new GLFWException("Could not initialize GLFW!");
@@ -529,18 +529,10 @@ public class GLWindow {
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, {})", OPENGL_VERSION_MINOR);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_VERSION_MINOR);
 
-            if (OPENGL_VERSION_MAJOR == 3) {
-                if (OPENGL_VERSION_MINOR == 0) {
-                    GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)");
-                    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-                } else if (OPENGL_VERSION_MINOR == 2) {
-                    GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)");
-                    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-                }
-            } else if(OPENGL_VERSION_MAJOR > 3) {
+            if(OPENGL_VERSION_MAJOR == 3 && OPENGL_VERSION_MINOR == 2 || OPENGL_VERSION_MAJOR > 3) {
                 GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)");
                 glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            }           
+            }            
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_SAMPLES, {})", OPENGL_SAMPLES);
             glfwWindowHint(GLFW_SAMPLES, OPENGL_SAMPLES);
