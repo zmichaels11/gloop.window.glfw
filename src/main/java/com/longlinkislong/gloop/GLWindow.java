@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
-import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import static org.lwjgl.glfw.GLFW.GLFW_ALPHA_BITS;
 import static org.lwjgl.glfw.GLFW.GLFW_BLUE_BITS;
@@ -41,7 +40,6 @@ import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
 import static org.lwjgl.glfw.GLFW.GLFW_DEPTH_BITS;
 import static org.lwjgl.glfw.GLFW.GLFW_GREEN_BITS;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_CORE_PROFILE;
-import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_FORWARD_COMPAT;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_PROFILE;
 import static org.lwjgl.glfw.GLFW.GLFW_RED_BITS;
 import static org.lwjgl.glfw.GLFW.GLFW_REFRESH_RATE;
@@ -55,15 +53,15 @@ import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.glfw.GLFWScrollCallback;
-import org.lwjgl.glfw.GLFWvidmode;
 import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
-import org.lwjgl.opengl.GLContext;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.runouw.util.Lazy;
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.opengl.GL;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
@@ -108,7 +106,7 @@ public class GLWindow {
     protected final List<GLKeyCharListener> charListeners = new ArrayList<>();
 
     private final Lazy<GLFWCharCallback> charCallback = new Lazy<>(() -> {
-        final GLFWCharCallback callback = GLFW.GLFWCharCallback((hwnd, charCode) -> {
+        final GLFWCharCallback callback = GLFWCharCallback.create((hwnd, charCode) -> {
             this.charListeners.forEach(listener -> listener.glfwCharCallback(hwnd, charCode));
         });
 
@@ -117,7 +115,7 @@ public class GLWindow {
     });
 
     private final Lazy<GLFWKeyCallback> keyCallback = new Lazy<>(() -> {
-        final GLFWKeyCallback callback = GLFW.GLFWKeyCallback((hwnd, key, scancode, action, mods) -> {
+        final GLFWKeyCallback callback = GLFWKeyCallback.create((hwnd, key, scancode, action, mods) -> {
             keyListeners.forEach(listener -> listener.glfwCallback(hwnd, key, scancode, action, mods));
         });
 
@@ -126,7 +124,7 @@ public class GLWindow {
     });
 
     private final Lazy<GLFWMouseButtonCallback> mouseButtonCallback = new Lazy<>(() -> {
-        final GLFWMouseButtonCallback callback = GLFW.GLFWMouseButtonCallback((hwnd, button, action, mods) -> {
+        final GLFWMouseButtonCallback callback = GLFWMouseButtonCallback.create((hwnd, button, action, mods) -> {
             this.mouseButtonListeners.forEach(listener -> listener.glfwMouseButtonCallback(hwnd, button, action, mods));
         });
 
@@ -135,7 +133,7 @@ public class GLWindow {
     });
 
     private final Lazy<GLFWCursorPosCallback> cursorPosCallback = new Lazy<>(() -> {
-        final GLFWCursorPosCallback callback = GLFW.GLFWCursorPosCallback((hwnd, x, y) -> {
+        final GLFWCursorPosCallback callback = GLFWCursorPosCallback.create((hwnd, x, y) -> {
             this.mousePositionListeners.forEach(listener -> listener.glfwCursorPosCallback(hwnd, x, y));
         });
 
@@ -144,7 +142,7 @@ public class GLWindow {
     });
 
     private final Lazy<GLFWScrollCallback> scrollCallback = new Lazy<>(() -> {
-        final GLFWScrollCallback callback = GLFW.GLFWScrollCallback((hwnd, x, y) -> {
+        final GLFWScrollCallback callback = GLFWScrollCallback.create((hwnd, x, y) -> {
             this.mouseScrollListeners.forEach(listener -> listener.glfwScrollCallback(hwnd, x, y));
         });
 
@@ -153,7 +151,7 @@ public class GLWindow {
     });
 
     private final Lazy<GLFWCursorEnterCallback> cursorEnterCallback = new Lazy<>(() -> {
-        final GLFWCursorEnterCallback callback = GLFW.GLFWCursorEnterCallback((hwnd, status) -> {
+        final GLFWCursorEnterCallback callback = GLFWCursorEnterCallback.create((hwnd, status) -> {
             this.mouseEnteredListeners.forEach(listener -> listener.glfwCursorEnteredCallback(hwnd, status));
         });
 
@@ -191,7 +189,12 @@ public class GLWindow {
             LOGGER.trace(GLFW_MARKER, "GLFW successfully initialized!");
         }
 
-        final GLFWErrorCallback errCallback = Callbacks.errorCallbackThrow();
+        final GLFWErrorCallback errCallback = GLFWErrorCallback.create((error, desc) -> {
+            final String msg = GLFWErrorCallback.getDescription(desc);
+
+            GLFW_LOGGER.error(GLFW_MARKER, "GLFW Error #{}: {}", error, msg);
+        });
+
         GLFW_LOGGER.trace(GLFW_MARKER, "glfwSetErrorCallback({})", errCallback);
 
         GLFW.glfwSetErrorCallback(errCallback);
@@ -461,7 +464,7 @@ public class GLWindow {
 
     private void setFramebufferResizeCallback(final GLFramebufferResizeListener listener) {
         final GLFWFramebufferSizeCallback callback
-                = GLFW.GLFWFramebufferSizeCallback(listener::glfwFramebufferResizeCallback);
+                = GLFWFramebufferSizeCallback.create(listener::glfwFramebufferResizeCallback);
 
         GLFW_LOGGER.trace(GLFW_MARKER, "glfwSetFramebufferSizeCallback({}, {})", this.window, callback);
         GLFW.glfwSetFramebufferSizeCallback(this.window, callback);
@@ -495,15 +498,15 @@ public class GLWindow {
             final long mHandle = GLFW.glfwGetWindowMonitor(GLWindow.this.monitor);
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetVideoMode({})", mHandle);
-            final ByteBuffer mode = GLFW.glfwGetVideoMode(mHandle);
+            final GLFWVidMode mode = GLFW.glfwGetVideoMode(mHandle);
             final ByteBuffer widthMM = NativeTools.getInstance().nextWord();
             final ByteBuffer heightMM = NativeTools.getInstance().nextWord();
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetMonitorPhysicalSize({}, {}, {})", mHandle, widthMM, heightMM);
             GLFW.glfwGetMonitorPhysicalSize(mHandle, widthMM, heightMM);
 
-            final int vWidth = GLFWvidmode.width(mode);
-            final double dpi = (vWidth / (widthMM.getInt() / 25.4));
+            final int vWidth = mode.width();
+            final double dpi = (vWidth / (widthMM.getInt() / 25.4 /* mm to in */));
 
             LOGGER.trace(GLOOP_MARKER, "GLWindow[{}].dpi = {}", GLWindow.this.window, dpi);
             LOGGER.trace(GLOOP_MARKER, "############### End GLWindow DPI Query ###############");
@@ -529,10 +532,10 @@ public class GLWindow {
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, {})", OPENGL_VERSION_MINOR);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_VERSION_MINOR);
 
-            if(OPENGL_VERSION_MAJOR == 3 && OPENGL_VERSION_MINOR == 2 || OPENGL_VERSION_MAJOR > 3) {
+            if (OPENGL_VERSION_MAJOR == 3 && OPENGL_VERSION_MINOR == 2 || OPENGL_VERSION_MAJOR > 3) {
                 GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)");
                 glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            }            
+            }
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_SAMPLES, {})", OPENGL_SAMPLES);
             glfwWindowHint(GLFW_SAMPLES, OPENGL_SAMPLES);
@@ -571,9 +574,11 @@ public class GLWindow {
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwMakeContextCurrent({})", GLWindow.this.window);
             GLFW.glfwMakeContextCurrent(GLWindow.this.window);
+
+            GL.createCapabilities();
+
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwSwapInterval({})", OPENGL_SWAP_INTERVAL);
             GLFW.glfwSwapInterval(OPENGL_SWAP_INTERVAL);
-            GLContext.createFromCurrent();
 
             final ByteBuffer fbWidth = NativeTools.getInstance().nextWord();
             final ByteBuffer fbHeight = NativeTools.getInstance().nextWord();
