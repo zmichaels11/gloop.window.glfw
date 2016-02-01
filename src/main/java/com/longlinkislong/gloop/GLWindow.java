@@ -506,7 +506,7 @@ public class GLWindow {
             GLFW.glfwGetMonitorPhysicalSize(mHandle, widthMM, heightMM);
 
             final int vWidth = mode.width();
-            final double dpi = (vWidth / (widthMM.getInt() / 25.4 /* mm to in */));
+            final double dpi = (vWidth / (widthMM.getInt(0) / 25.4 /* mm to in */));
 
             LOGGER.trace(GLOOP_MARKER, "GLWindow[{}].dpi = {}", GLWindow.this.window, dpi);
             LOGGER.trace(GLOOP_MARKER, "############### End GLWindow DPI Query ###############");
@@ -576,6 +576,7 @@ public class GLWindow {
             GLFW.glfwMakeContextCurrent(GLWindow.this.window);
 
             GL.createCapabilities();
+            
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwSwapInterval({})", OPENGL_SWAP_INTERVAL);
             GLFW.glfwSwapInterval(OPENGL_SWAP_INTERVAL);
@@ -586,7 +587,7 @@ public class GLWindow {
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetFramebufferSize({}, {}, {})", GLWindow.this.window, fbWidth, fbHeight);
             GLFW.glfwGetFramebufferSize(GLWindow.this.window, fbWidth, fbHeight);
 
-            GLWindow.this.thread.currentViewport = new GLViewport(0, 0, fbWidth.getInt(), fbHeight.getInt());
+            GLWindow.this.thread.currentViewport = new GLViewport(0, 0, fbWidth.getInt(0), fbHeight.getInt(0));
             GLWindow.this.handler.register();
 
             WINDOWS.put(GLWindow.this.window, GLWindow.this);
@@ -853,7 +854,7 @@ public class GLWindow {
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetFramebufferSize({}, {}, {})", GLWindow.this.window, width, height);
             GLFW.glfwGetFramebufferSize(GLWindow.this.window, width, height);
 
-            final int[] size = new int[]{width.getInt(), height.getInt()};
+            final int[] size = new int[]{width.getInt(0), height.getInt(0)};
 
             LOGGER.trace(GLOOP_MARKER, "GLWindow[{}] framebuffer size: <{}, {}>", size[0], size[1]);
             LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Framebuffer Size Query ###############");
@@ -958,7 +959,7 @@ public class GLWindow {
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetWindowFrameSize({}, {}, {}, {}, {})", GLWindow.this.window, l, t, r, b);
             GLFW.glfwGetWindowFrameSize(GLWindow.this.window, l, t, r, b);
 
-            final int[] size = new int[]{l.getInt(), t.getInt(), r.getInt(), b.getInt()};
+            final int[] size = new int[]{l.getInt(0), t.getInt(0), r.getInt(0), b.getInt(0)};
 
             LOGGER.trace(GLOOP_MARKER, "GLWindow[{}].size=<{}, {}, {}, {}>",
                     GLWindow.this.title,
