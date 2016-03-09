@@ -25,7 +25,7 @@ dependencies {
     def gloopSubProj = file('../core')
     
     if(gloopSubProj.exists()) {                
-        compile files('../core/build/libs/gloop-15.08-SNAPSHOT.jar')
+        compile files('../core/build/libs/gloop.jar')
     } else {   
         compile "com.longlinkislong:gloop:${getProjectVersion('gloop')}"    
     }

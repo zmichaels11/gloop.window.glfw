@@ -494,8 +494,9 @@ public class GLWindow {
                 throw new GLFWException("GLWindow is not valid!");
             }
 
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetWindowMonitor({})", GLWindow.this.monitor);
-            final long mHandle = GLFW.glfwGetWindowMonitor(GLWindow.this.monitor);
+            final long m = GLWindow.this.monitor == 0 ? GLFW.glfwGetPrimaryMonitor() : GLWindow.this.monitor;
+            GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetWindowMonitor({})", m);
+            final long mHandle = GLFW.glfwGetWindowMonitor(m);
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetVideoMode({})", mHandle);
             final GLFWVidMode mode = GLFW.glfwGetVideoMode(mHandle);
