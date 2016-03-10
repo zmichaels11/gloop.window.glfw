@@ -78,8 +78,8 @@ public class GLWindow {
     private static final Marker GLFW_MARKER = MarkerFactory.getMarker("GLFW");
     private static final Marker GLOOP_MARKER = MarkerFactory.getMarker("GLOOP");
 
-    public static final int OPENGL_VERSION_MAJOR;
-    public static final int OPENGL_VERSION_MINOR;
+    public static final int VERSION_MAJOR;
+    public static final int VERSION_MINOR;
     public static final int OPENGL_SWAP_INTERVAL;
     public static final int OPENGL_SAMPLES;
     public static final int OPENGL_RED_BITS;
@@ -170,9 +170,9 @@ public class GLWindow {
 
     static {
         NativeTools.getInstance().autoLoad();
-        final String glVersion = System.getProperty("gloop.opengl.version", "3.2");
-        OPENGL_VERSION_MAJOR = Integer.parseInt(glVersion.substring(0, glVersion.indexOf(".")));
-        OPENGL_VERSION_MINOR = Integer.parseInt(glVersion.substring(glVersion.indexOf(".") + 1));
+        final String glVersion = System.getProperty("gloop.opengl.version", "1.0");
+        VERSION_MAJOR = Integer.parseInt(glVersion.substring(0, glVersion.indexOf(".")));
+        VERSION_MINOR = Integer.parseInt(glVersion.substring(glVersion.indexOf(".") + 1));
         OPENGL_REFRESH_RATE = Integer.getInteger("gloop.opengl.refresh_rate", -1);
         OPENGL_SWAP_INTERVAL = Integer.getInteger("gloop.opengl.swap_interval", 1);
         OPENGL_SAMPLES = Integer.getInteger("gloop.opengl.msaa", -1);
@@ -528,12 +528,12 @@ public class GLWindow {
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_RESIZABLE, GL_TRUE)");
             glfwWindowHint(GLFW.GLFW_RESIZABLE, GL_TRUE);
 
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, {})", OPENGL_VERSION_MAJOR);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_VERSION_MAJOR);
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, {})", OPENGL_VERSION_MINOR);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_VERSION_MINOR);
+            GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, {})", VERSION_MAJOR);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, VERSION_MAJOR);
+            GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, {})", VERSION_MINOR);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, VERSION_MINOR);
 
-            if (OPENGL_VERSION_MAJOR == 3 && OPENGL_VERSION_MINOR == 2 || OPENGL_VERSION_MAJOR > 3) {
+            if (VERSION_MAJOR == 3 && VERSION_MINOR == 2 || VERSION_MAJOR > 3) {
                 GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)");
                 glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             }
