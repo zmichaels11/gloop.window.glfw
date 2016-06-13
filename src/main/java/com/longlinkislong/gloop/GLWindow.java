@@ -25,7 +25,7 @@
  */
 package com.longlinkislong.gloop;
 
-import java.nio.ByteBuffer;
+import com.runouw.util.Lazy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -49,19 +49,18 @@ import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 import org.lwjgl.glfw.GLFWCharCallback;
 import org.lwjgl.glfw.GLFWCursorEnterCallback;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
+import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.glfw.GLFWScrollCallback;
+import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.opengl.GL;
 import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.runouw.util.Lazy;
-import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWVidMode;
-import org.lwjgl.opengl.GL;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
@@ -98,12 +97,12 @@ public class GLWindow {
     private GLThread thread = null;
     private final GLWindow shared;
 
-    protected final List<GLKeyListener> keyListeners = new ArrayList<>();
-    protected final List<GLMousePositionListener> mousePositionListeners = new ArrayList<>();
-    protected final List<GLMouseButtonListener> mouseButtonListeners = new ArrayList<>();
-    protected final List<GLMouseEnteredListener> mouseEnteredListeners = new ArrayList<>();
-    protected final List<GLMouseScrollListener> mouseScrollListeners = new ArrayList<>();
-    protected final List<GLKeyCharListener> charListeners = new ArrayList<>();
+    protected final List<GLKeyListener> keyListeners = new ArrayList<>(0);
+    protected final List<GLMousePositionListener> mousePositionListeners = new ArrayList<>(0);
+    protected final List<GLMouseButtonListener> mouseButtonListeners = new ArrayList<>(0);
+    protected final List<GLMouseEnteredListener> mouseEnteredListeners = new ArrayList<>(0);
+    protected final List<GLMouseScrollListener> mouseScrollListeners = new ArrayList<>(0);
+    protected final List<GLKeyCharListener> charListeners = new ArrayList<>(0);
 
     private final Lazy<GLFWCharCallback> charCallback = new Lazy<>(() -> {
         final GLFWCharCallback callback = GLFWCharCallback.create((hwnd, charCode) -> {
@@ -152,7 +151,9 @@ public class GLWindow {
 
     private final Lazy<GLFWCursorEnterCallback> cursorEnterCallback = new Lazy<>(() -> {
         final GLFWCursorEnterCallback callback = GLFWCursorEnterCallback.create((hwnd, status) -> {
-            this.mouseEnteredListeners.forEach(listener -> listener.glfwCursorEnteredCallback(hwnd, status));
+            final int iStatus = status ? 1 : 0;
+
+            this.mouseEnteredListeners.forEach(listener -> listener.glfwCursorEnteredCallback(hwnd, iStatus));
         });
 
         LOGGER.trace(GLFW_MARKER, "GLWindow[{}].cursorEnterCallback is initialized!", GLWindow.this.title);
@@ -163,7 +164,7 @@ public class GLWindow {
     private Optional<Runnable> onClose = Optional.empty();
     private final long monitor;
     private volatile boolean hasInitialized = false;
-    private final List<Runnable> cleanupTasks = new ArrayList<>();
+    private final List<Runnable> cleanupTasks = new ArrayList<>(0);
 
     protected static final Map<Long, GLWindow> WINDOWS = new TreeMap<>(Long::compareTo);
     private static final List<GLGamepad> GAMEPADS;
@@ -183,7 +184,7 @@ public class GLWindow {
         OPENGL_DEPTH_BITS = Integer.getInteger("gloop.opengl.depth_bits", 24);
         OPENGL_STENCIL_BITS = Integer.getInteger("gloop.opengl.stencil_bits", 8);
 
-        if (GLFW.glfwInit() != GL_TRUE) {
+        if (GLFW.glfwInit()) {
             throw new GLFWException("Could not initialize GLFW!");
         } else {
             LOGGER.trace(GLFW_MARKER, "GLFW successfully initialized!");
@@ -199,9 +200,9 @@ public class GLWindow {
 
         GLFW.glfwSetErrorCallback(errCallback);
 
-        final List<GLGamepad> gamepads = new ArrayList<>();
+        final List<GLGamepad> gamepads = new ArrayList<>(0);
         for (int i = 0; i < GLFW.GLFW_JOYSTICK_LAST; i++) {
-            if (GLFW.glfwJoystickPresent(i) == GL_TRUE) {
+            if (GLFW.glfwJoystickPresent(i)) {
                 final GLGamepad gamepad = new GLGamepad(i);
 
                 gamepads.add(gamepad);
@@ -219,7 +220,7 @@ public class GLWindow {
      * @since 15.06.07
      */
     public static List<GLGamepad> listGamepads() {
-        return GAMEPADS;
+        return Collections.unmodifiableList(GAMEPADS);
     }
 
     /**
@@ -229,7 +230,7 @@ public class GLWindow {
      * @since 15.06.07
      */
     public static List<GLWindow> listActiveWindows() {
-        final List<GLWindow> windows = new ArrayList<>();
+        final List<GLWindow> windows = new ArrayList<>(1);
 
         windows.addAll(WINDOWS.values());
 
@@ -500,14 +501,16 @@ public class GLWindow {
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetVideoMode({})", mHandle);
             final GLFWVidMode mode = GLFW.glfwGetVideoMode(mHandle);
-            final ByteBuffer widthMM = NativeTools.getInstance().nextWord();
-            final ByteBuffer heightMM = NativeTools.getInstance().nextWord();
+
+            final int[] widthMM = { 0 };
+            final int[] heightMM = { 0 };
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetMonitorPhysicalSize({}, {}, {})", mHandle, widthMM, heightMM);
+
             GLFW.glfwGetMonitorPhysicalSize(mHandle, widthMM, heightMM);
 
             final int vWidth = mode.width();
-            final double dpi = (vWidth / (widthMM.getInt(0) / 25.4 /* mm to in */));
+            final double dpi = (vWidth / (widthMM[0] / 25.4 /* mm to in */));
 
             LOGGER.trace(GLOOP_MARKER, "GLWindow[{}].dpi = {}", GLWindow.this.window, dpi);
             LOGGER.trace(GLOOP_MARKER, "############### End GLWindow DPI Query ###############");
@@ -582,13 +585,13 @@ public class GLWindow {
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwSwapInterval({})", OPENGL_SWAP_INTERVAL);
             GLFW.glfwSwapInterval(OPENGL_SWAP_INTERVAL);
 
-            final ByteBuffer fbWidth = NativeTools.getInstance().nextWord();
-            final ByteBuffer fbHeight = NativeTools.getInstance().nextWord();
+            final int[] fbWidth = { 0 };
+            final int[] fbHeight = { 0 };
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetFramebufferSize({}, {}, {})", GLWindow.this.window, fbWidth, fbHeight);
             GLFW.glfwGetFramebufferSize(GLWindow.this.window, fbWidth, fbHeight);
 
-            GLWindow.this.thread.currentViewport = new GLViewport(0, 0, fbWidth.getInt(0), fbHeight.getInt(0));
+            GLWindow.this.thread.currentViewport = new GLViewport(0, 0, fbWidth[0], fbHeight[0]);
             GLWindow.this.handler.register();
 
             WINDOWS.put(GLWindow.this.window, GLWindow.this);
@@ -618,7 +621,7 @@ public class GLWindow {
         new SetFullscreenTask(fullscreen).glRun();
     }
 
-    private final List<Runnable> onContextLost = new ArrayList<>();
+    private final List<Runnable> onContextLost = new ArrayList<>(0);
 
     /**
      * Adds a callback for when the OpenGL context is lost.
@@ -678,12 +681,12 @@ public class GLWindow {
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwSwapInterval({})", OPENGL_SWAP_INTERVAL);
             GLFW.glfwSwapInterval(OPENGL_SWAP_INTERVAL);
 
-            final ByteBuffer fbWidth = NativeTools.getInstance().nextWord();
-            final ByteBuffer fbHeight = NativeTools.getInstance().nextWord();
+            final int[] fbWidth = { 0 };
+            final int[] fbHeight = { 0 };
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetFramebufferSize({}, {}, {})", GLWindow.this.window, fbWidth, fbHeight);
             GLFW.glfwGetFramebufferSize(GLWindow.this.window, fbWidth, fbHeight);
-            GLWindow.this.thread.currentViewport = new GLViewport(0, 0, fbWidth.getInt(), fbHeight.getInt());
+            GLWindow.this.thread.currentViewport = new GLViewport(0, 0, fbWidth[0], fbHeight[0]);
 
             GLWindow.this.handler.register();
             GLFW.glfwSetKeyCallback(GLWindow.this.window, GLWindow.this.keyCallback.get());
@@ -849,13 +852,13 @@ public class GLWindow {
                 throw new GLFWException("GLWindow is not valid!");
             }
 
-            final ByteBuffer width = NativeTools.getInstance().nextWord();
-            final ByteBuffer height = NativeTools.getInstance().nextWord();
+            final int[] width = { 0 };
+            final int[] height = { 0 };
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetFramebufferSize({}, {}, {})", GLWindow.this.window, width, height);
             GLFW.glfwGetFramebufferSize(GLWindow.this.window, width, height);
 
-            final int[] size = new int[]{width.getInt(0), height.getInt(0)};
+            final int[] size = new int[]{width[0], height[0]};
 
             LOGGER.trace(GLOOP_MARKER, "GLWindow[{}] framebuffer size: <{}, {}>", size[0], size[1]);
             LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Framebuffer Size Query ###############");
@@ -931,13 +934,13 @@ public class GLWindow {
                 throw new GLFWException("GLWindow is not valid!");
             }
 
-            final ByteBuffer x = NativeTools.getInstance().nextWord();
-            final ByteBuffer y = NativeTools.getInstance().nextWord();
+            final int[] x = { 0 };
+            final int[] y = { 0 };
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetWindowPos({}, {}, {})", GLWindow.this.window, x, y);
             GLFW.glfwGetWindowPos(GLWindow.this.window, x, y);
 
-            return new int[]{x.getInt(), y.getInt()};
+            return new int[]{x[0], y[0]};
         }
     }
 
@@ -952,15 +955,15 @@ public class GLWindow {
                 throw new GLFWException("GLWindow is not valid!");
             }
 
-            final ByteBuffer l = NativeTools.getInstance().nextWord();
-            final ByteBuffer t = NativeTools.getInstance().nextWord();
-            final ByteBuffer r = NativeTools.getInstance().nextWord();
-            final ByteBuffer b = NativeTools.getInstance().nextWord();
+            final int[] l = { 0 };
+            final int[] t = { 0 };
+            final int[] r = { 0 };
+            final int[] b = { 0 };
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetWindowFrameSize({}, {}, {}, {}, {})", GLWindow.this.window, l, t, r, b);
             GLFW.glfwGetWindowFrameSize(GLWindow.this.window, l, t, r, b);
 
-            final int[] size = new int[]{l.getInt(0), t.getInt(0), r.getInt(0), b.getInt(0)};
+            final int[] size = new int[]{l[0], t[0], r[0], b[0]};
 
             LOGGER.trace(GLOOP_MARKER, "GLWindow[{}].size=<{}, {}, {}, {}>",
                     GLWindow.this.title,
@@ -1024,13 +1027,14 @@ public class GLWindow {
             if (!GLWindow.this.isValid()) {
                 throw new GLFWException("GLWindow is not valid!");
             }
-            final ByteBuffer w = NativeTools.getInstance().nextWord();
-            final ByteBuffer h = NativeTools.getInstance().nextWord();
+
+            final int[] w = { 0 };
+            final int[] h = { 0 };
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetWindowSize({}, {}, {})", GLWindow.this.window, w, h);
             GLFW.glfwGetWindowSize(GLWindow.this.window, w, h);
 
-            final int[] size = new int[]{w.getInt(), h.getInt()};
+            final int[] size = new int[]{w[0], h[0] };
 
             LOGGER.trace(GLOOP_MARKER, "GLWindow[{}].size=<{}, {}>", GLWindow.this.title, size[0], size[1]);
             LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Size Query ###############");
@@ -1080,7 +1084,7 @@ public class GLWindow {
             LOGGER.trace(GLOOP_MARKER, "\tUpdating GLWindow[{}]", GLWindow.this.title);
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowShouldClose({})", GLWindow.this.window);
-            if (GLFW.glfwWindowShouldClose(GLWindow.this.window) == GL_TRUE) {
+            if (GLFW.glfwWindowShouldClose(GLWindow.this.window)) {
                 GLWindow.this.cleanup();
             } else {
                 GLFW_LOGGER.trace(GLFW_MARKER, "glfwSwapBuffers({})", GLWindow.this.window);
@@ -1121,7 +1125,7 @@ public class GLWindow {
             }
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwSetWindowShouldClose({}, GL_TRUE)", GLWindow.this.window);
-            GLFW.glfwSetWindowShouldClose(GLWindow.this.window, GL_TRUE);
+            GLFW.glfwSetWindowShouldClose(GLWindow.this.window, true);
 
             LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Close Task ###############");
         }
@@ -1138,13 +1142,14 @@ public class GLWindow {
         this.workerThreads.forEach(GLWindow::close);
 
         LOGGER.trace(GLFW_MARKER, "Releasing callbacks...");
-        this.cursorEnterCallback.ifInitialized(GLFWCursorEnterCallback::release);
-        this.cursorPosCallback.ifInitialized(GLFWCursorPosCallback::release);
-        this.keyCallback.ifInitialized(GLFWKeyCallback::release);
-        this.charCallback.ifInitialized(GLFWCharCallback::release);
-        this.mouseButtonCallback.ifInitialized(GLFWMouseButtonCallback::release);
-        this.scrollCallback.ifInitialized(GLFWScrollCallback::release);
-        this.resizeCallback.ifPresent(GLFWFramebufferSizeCallback::release);
+
+        this.cursorEnterCallback.ifInitialized(GLFWCursorEnterCallback::free);
+        this.cursorPosCallback.ifInitialized(GLFWCursorPosCallback::free);
+        this.keyCallback.ifInitialized(GLFWKeyCallback::free);
+        this.charCallback.ifInitialized(GLFWCharCallback::free);
+        this.mouseButtonCallback.ifInitialized(GLFWMouseButtonCallback::free);
+        this.scrollCallback.ifInitialized(GLFWScrollCallback::free);
+        this.resizeCallback.ifPresent(GLFWFramebufferSizeCallback::free);
 
         LOGGER.trace(GLFW_MARKER, "Firing onClose callback...");
         this.onClose.ifPresent(Runnable::run);
@@ -1163,7 +1168,7 @@ public class GLWindow {
         this.thread.shutdown();
     }
 
-    private final List<GLWindow> workerThreads = new ArrayList<>();
+    private final List<GLWindow> workerThreads = new ArrayList<>(0);
 
     /**
      * Constructs a new OpenGL worker thread. The worker thread will have a

@@ -25,7 +25,6 @@
  */
 package com.longlinkislong.gloop;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -41,10 +40,10 @@ import org.lwjgl.glfw.GLFW;
 public class GLMouse implements GLMouseEnteredListener, GLMousePositionListener, GLMouseButtonListener, GLMouseScrollListener {
 
     private final GLWindow window;
-    private final List<GLMouseEnteredListener> mouseEnteredListeners = new ArrayList<>();
-    private final List<GLMousePositionListener> mousePositionListeners = new ArrayList<>();
-    private final List<GLMouseButtonListener> mouseButtonListeners = new ArrayList<>();
-    private final List<GLMouseScrollListener> mouseScrollListeners = new ArrayList<>();        
+    private final List<GLMouseEnteredListener> mouseEnteredListeners = new ArrayList<>(0);
+    private final List<GLMousePositionListener> mousePositionListeners = new ArrayList<>(0);
+    private final List<GLMouseButtonListener> mouseButtonListeners = new ArrayList<>(0);
+    private final List<GLMouseScrollListener> mouseScrollListeners = new ArrayList<>(0);
 
     protected GLMouse(final GLWindow window) {
         this.window = window;
@@ -82,7 +81,7 @@ public class GLMouse implements GLMouseEnteredListener, GLMousePositionListener,
                                 button,
                                 action,
                                 modifiers));
-    }    
+    }
 
     /**
      * Retrieves the current cursor position
@@ -96,13 +95,12 @@ public class GLMouse implements GLMouseEnteredListener, GLMousePositionListener,
             throw new GLFWException("Invalid GLWindow!");
         }
 
-        final ByteBuffer xPos = NativeTools.getInstance().nextDWord();
-        final ByteBuffer yPos = NativeTools.getInstance().nextDWord();
+        final double[] xPos = {0.0};
+        final double[] yPos = {0.0};
 
         GLFW.glfwGetCursorPos(this.window.window, xPos, yPos);
 
-        return GLVec2D.create(xPos.getDouble(), yPos.getDouble());
-
+        return GLVec2D.create(xPos[0], yPos[0]);
     }
 
     /**
@@ -126,6 +124,7 @@ public class GLMouse implements GLMouseEnteredListener, GLMousePositionListener,
 
     /**
      * Adds a GLMouseScrollListener to the mouse object.
+     *
      * @param listener the listener to add
      * @return true if the listener was added
      * @since 15.06.05
@@ -134,9 +133,10 @@ public class GLMouse implements GLMouseEnteredListener, GLMousePositionListener,
         Objects.requireNonNull(listener, "Listener cannot be null!");
         return this.mouseScrollListeners.add(listener);
     }
-    
+
     /**
      * Attempts to remove the GLMouseScrollListener from the GLMouse object.
+     *
      * @param listener the listener to remove.
      * @return true if the listener was removed.
      * @since 15.06.05
@@ -144,8 +144,8 @@ public class GLMouse implements GLMouseEnteredListener, GLMousePositionListener,
     public boolean removeScrollListener(final GLMouseScrollListener listener) {
         Objects.requireNonNull(listener, "Listener cannot be null!");
         return this.mouseScrollListeners.remove(listener);
-    }        
-    
+    }
+
     /**
      * Adds a GLMouseEnteredListener to the mouse object.
      *
