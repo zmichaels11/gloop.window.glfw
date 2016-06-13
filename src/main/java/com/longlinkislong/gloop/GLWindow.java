@@ -185,9 +185,9 @@ public class GLWindow {
         OPENGL_STENCIL_BITS = Integer.getInteger("gloop.opengl.stencil_bits", 8);
 
         if (GLFW.glfwInit()) {
-            throw new GLFWException("Could not initialize GLFW!");
-        } else {
             LOGGER.trace(GLFW_MARKER, "GLFW successfully initialized!");
+        } else {
+            throw new GLFWException("Could not initialize GLFW!");
         }
 
         final GLFWErrorCallback errCallback = GLFWErrorCallback.create((error, desc) -> {
