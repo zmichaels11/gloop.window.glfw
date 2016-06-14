@@ -726,6 +726,7 @@ public class GLWindow {
             GLFW.glfwSetCursorPosCallback(GLWindow.this.window, GLWindow.this.cursorPosCallback.get());
             GLFW.glfwSetScrollCallback(GLWindow.this.window, GLWindow.this.scrollCallback.get());
             GLFW.glfwSetCharCallback(GLWindow.this.window, GLWindow.this.charCallback.get());
+            GLFW.glfwSetWindowCloseCallback(GLWindow.this.window, GLWindow.this.windowCloseCallback.get());
 
             LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Set Fullscreen Task ###############");
         }
@@ -1181,6 +1182,7 @@ public class GLWindow {
         this.mouseButtonCallback.ifInitialized(GLFWMouseButtonCallback::free);
         this.scrollCallback.ifInitialized(GLFWScrollCallback::free);
         this.resizeCallback.ifPresent(GLFWFramebufferSizeCallback::free);
+        this.windowCloseCallback.ifInitialized(GLFWWindowCloseCallback::free);
 
         LOGGER.trace(GLFW_MARKER, "Firing onClose callback...");
         this.onClose.ifPresent(Runnable::run);
