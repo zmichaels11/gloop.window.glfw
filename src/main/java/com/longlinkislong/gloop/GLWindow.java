@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2015, Zachary Michaels
  * All rights reserved.
  *
@@ -55,6 +55,7 @@ import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.glfw.GLFWWindowCloseCallback;
 import org.lwjgl.opengl.GL;
 import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
@@ -160,7 +161,24 @@ public class GLWindow {
         return callback;
     });
 
+    private final Lazy<GLFWWindowCloseCallback> windowCloseCallback = new Lazy<>(()->{
+        final GLFWWindowCloseCallback callback = GLFWWindowCloseCallback.create((hwnd) -> {
+            this.beforeClose.ifPresent(Runnable::run);
+        });
+        LOGGER.trace(GLFW_MARKER, "GLWindow[{}].windowCloseCallback is initialized!", GLWindow.this.title);
+        return callback;
+    });
+
+    /**
+     * Tells the window to close or not.
+     * @param shouldClose
+     */
+    public void setShouldClose(boolean shouldClose){
+        GLFW.glfwSetWindowShouldClose(window, shouldClose);
+    }
+
     private Optional<GLFWFramebufferSizeCallback> resizeCallback = Optional.empty();
+    private Optional<Runnable> beforeClose = Optional.empty();
     private Optional<Runnable> onClose = Optional.empty();
     private final long monitor;
     private volatile boolean hasInitialized = false;
@@ -235,6 +253,17 @@ public class GLWindow {
         windows.addAll(WINDOWS.values());
 
         return Collections.unmodifiableList(windows);
+    }
+
+    /**
+     * Registers a callback to right before the window is closed. To prevent the
+     * window from closing, call setShouldClose() and pass 'false',
+     *
+     * @param onBeforeCloseCallback the callback to run
+     * @since 15.06.24
+     */
+    public void setOnBeforeClose(final Runnable onBeforeCloseCallback) {
+
     }
 
     /**
@@ -580,7 +609,7 @@ public class GLWindow {
             GLFW.glfwMakeContextCurrent(GLWindow.this.window);
 
             GL.createCapabilities();
-            
+
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwSwapInterval({})", OPENGL_SWAP_INTERVAL);
             GLFW.glfwSwapInterval(OPENGL_SWAP_INTERVAL);
