@@ -263,7 +263,8 @@ public class GLWindow {
      * @since 15.06.24
      */
     public void setOnBeforeClose(final Runnable onBeforeCloseCallback) {
-
+        LOGGER.trace(GLFW_MARKER, "GLWindow[{}].onBeforeClose = {}", this.title, onBeforeCloseCallback);
+        this.beforeClose = Optional.ofNullable(onBeforeCloseCallback);
     }
 
     /**
