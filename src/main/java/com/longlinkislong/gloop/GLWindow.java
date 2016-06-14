@@ -633,6 +633,7 @@ public class GLWindow {
             GLFW.glfwSetCursorPosCallback(GLWindow.this.window, GLWindow.this.cursorPosCallback.get());
             GLFW.glfwSetScrollCallback(GLWindow.this.window, GLWindow.this.scrollCallback.get());
             GLFW.glfwSetCharCallback(GLWindow.this.window, GLWindow.this.charCallback.get());
+            GLFW.glfwSetWindowCloseCallback(GLWindow.this.window, GLWindow.this.windowCloseCallback.get());
 
             LOGGER.trace(GLOOP_MARKER, "GLWindow[{}] is initialized!", GLWindow.this.title);
             LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Init Task ###############");
