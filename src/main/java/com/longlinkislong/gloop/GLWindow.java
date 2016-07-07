@@ -56,6 +56,8 @@ import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.glfw.GLFWWindowCloseCallback;
+import org.lwjgl.glfw.GLFWWindowIconifyCallback;
+import org.lwjgl.glfw.GLFWWindowIconifyCallbackI;
 import org.lwjgl.opengl.GL;
 import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
@@ -169,6 +171,20 @@ public class GLWindow {
         return callback;
     });
 
+    private final Lazy<GLFWWindowIconifyCallback> windowIconifyCallback = new Lazy<>(()->{
+        final GLFWWindowIconifyCallback callback = GLFWWindowIconifyCallback.create((long hwnd, boolean iconified) -> {
+            if(iconified){
+                this.onMinimize.ifPresent(Runnable::run);
+            }else{
+                this.onRestore.ifPresent(Runnable::run);
+            }
+            // TODO: call resize callbacks?
+
+        });
+        LOGGER.trace(GLFW_MARKER, "GLWindow[{}].windowCloseCallback is initialized!", GLWindow.this.title);
+        return callback;
+    });
+
     /**
      * Tells the window to close or not.
      * @param shouldClose
@@ -180,6 +196,8 @@ public class GLWindow {
     private Optional<GLFWFramebufferSizeCallback> resizeCallback = Optional.empty();
     private Optional<Runnable> beforeClose = Optional.empty();
     private Optional<Runnable> onClose = Optional.empty();
+    private Optional<Runnable> onMinimize = Optional.empty();
+    private Optional<Runnable> onRestore = Optional.empty();
     private final long monitor;
     private volatile boolean hasInitialized = false;
     private final List<Runnable> cleanupTasks = new ArrayList<>(0);
@@ -276,6 +294,30 @@ public class GLWindow {
     public void setOnClose(final Runnable onCloseCallback) {
         LOGGER.trace(GLFW_MARKER, "GLWindow[{}].onClose = {}", this.title, onCloseCallback);
         this.onClose = Optional.ofNullable(onCloseCallback);
+    }
+
+    /**
+     * Registers a callback to run when the window is minimized (aka,
+     * iconified).
+     *
+     * @param onMinimizeCallback the callback to run
+     * @since 15.06.24
+     */
+    public void setOnMinimize(final Runnable onMinimizeCallback) {
+        LOGGER.trace(GLFW_MARKER, "GLWindow[{}].onMinimize = {}", this.title, onMinimizeCallback);
+        this.onMinimize = Optional.ofNullable(onMinimizeCallback);
+    }
+
+    /**
+     * Registers a callback to run when the window is restored from being
+     * minimized.
+     *
+     * @param onRestoreCallback the callback to run
+     * @since 15.06.24
+     */
+    public void setOnRestore(final Runnable onRestoreCallback) {
+        LOGGER.trace(GLFW_MARKER, "GLWindow[{}].onRestore = {}", this.title, onRestoreCallback);
+        this.onRestore = Optional.ofNullable(onRestoreCallback);
     }
 
     /**
@@ -1183,6 +1225,7 @@ public class GLWindow {
         this.scrollCallback.ifInitialized(GLFWScrollCallback::free);
         this.resizeCallback.ifPresent(GLFWFramebufferSizeCallback::free);
         this.windowCloseCallback.ifInitialized(GLFWWindowCloseCallback::free);
+        this.windowIconifyCallback.ifInitialized(GLFWWindowIconifyCallback::free);
 
         LOGGER.trace(GLFW_MARKER, "Firing onClose callback...");
         this.onClose.ifPresent(Runnable::run);
