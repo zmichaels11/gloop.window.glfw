@@ -35,11 +35,15 @@ import java.util.TreeMap;
 import org.lwjgl.glfw.GLFW;
 import static org.lwjgl.glfw.GLFW.GLFW_ALPHA_BITS;
 import static org.lwjgl.glfw.GLFW.GLFW_BLUE_BITS;
+import static org.lwjgl.glfw.GLFW.GLFW_CLIENT_API;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
 import static org.lwjgl.glfw.GLFW.GLFW_DEPTH_BITS;
 import static org.lwjgl.glfw.GLFW.GLFW_GREEN_BITS;
+import static org.lwjgl.glfw.GLFW.GLFW_NO_API;
+import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_API;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_CORE_PROFILE;
+import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_ES_API;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_PROFILE;
 import static org.lwjgl.glfw.GLFW.GLFW_RED_BITS;
 import static org.lwjgl.glfw.GLFW.GLFW_REFRESH_RATE;
@@ -57,7 +61,6 @@ import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.glfw.GLFWWindowCloseCallback;
 import org.lwjgl.glfw.GLFWWindowIconifyCallback;
-import org.lwjgl.glfw.GLFWWindowIconifyCallbackI;
 import org.lwjgl.opengl.GL;
 import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
@@ -80,6 +83,13 @@ public class GLWindow {
     private static final Marker GLFW_MARKER = MarkerFactory.getMarker("GLFW");
     private static final Marker GLOOP_MARKER = MarkerFactory.getMarker("GLOOP");
 
+    public enum ClientAPI {
+        VULKAN,
+        OPENGL,
+        OPENGLES
+    }
+
+    public static final ClientAPI CLIENT_API;
     public static final int VERSION_MAJOR;
     public static final int VERSION_MINOR;
     public static final int OPENGL_SWAP_INTERVAL;
@@ -163,7 +173,7 @@ public class GLWindow {
         return callback;
     });
 
-    private final Lazy<GLFWWindowCloseCallback> windowCloseCallback = new Lazy<>(()->{
+    private final Lazy<GLFWWindowCloseCallback> windowCloseCallback = new Lazy<>(() -> {
         final GLFWWindowCloseCallback callback = GLFWWindowCloseCallback.create((hwnd) -> {
             this.beforeClose.ifPresent(Runnable::run);
         });
@@ -171,11 +181,11 @@ public class GLWindow {
         return callback;
     });
 
-    private final Lazy<GLFWWindowIconifyCallback> windowIconifyCallback = new Lazy<>(()->{
+    private final Lazy<GLFWWindowIconifyCallback> windowIconifyCallback = new Lazy<>(() -> {
         final GLFWWindowIconifyCallback callback = GLFWWindowIconifyCallback.create((long hwnd, boolean iconified) -> {
-            if(iconified){
+            if (iconified) {
                 this.onMinimize.ifPresent(Runnable::run);
-            }else{
+            } else {
                 this.onRestore.ifPresent(Runnable::run);
             }
             // TODO: call resize callbacks?
@@ -187,9 +197,10 @@ public class GLWindow {
 
     /**
      * Tells the window to close or not.
+     *
      * @param shouldClose
      */
-    public void setShouldClose(boolean shouldClose){
+    public void setShouldClose(boolean shouldClose) {
         GLFW.glfwSetWindowShouldClose(window, shouldClose);
     }
 
@@ -219,6 +230,23 @@ public class GLWindow {
         OPENGL_ALPHA_BITS = Integer.getInteger("gloop.opengl.alpha_bits", 8);
         OPENGL_DEPTH_BITS = Integer.getInteger("gloop.opengl.depth_bits", 24);
         OPENGL_STENCIL_BITS = Integer.getInteger("gloop.opengl.stencil_bits", 8);
+
+        final String apiString = System.getProperty("com.longlinkislong.gloop.client_api", "OpenGL");
+
+        switch (apiString.toLowerCase()) {
+            case "vulkan":
+                CLIENT_API = ClientAPI.VULKAN;
+                break;
+            case "opengl":
+                CLIENT_API = ClientAPI.OPENGL;
+                break;
+            case "opengles":
+            case "opengl_es":
+                CLIENT_API = ClientAPI.OPENGLES;
+                break;
+            default:
+                throw new UnsupportedOperationException("Unsupported client API: " + apiString);
+        }
 
         if (GLFW.glfwInit()) {
             LOGGER.trace(GLFW_MARKER, "GLFW successfully initialized!");
@@ -574,8 +602,8 @@ public class GLWindow {
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetVideoMode({})", mHandle);
             final GLFWVidMode mode = GLFW.glfwGetVideoMode(mHandle);
 
-            final int[] widthMM = { 0 };
-            final int[] heightMM = { 0 };
+            final int[] widthMM = {0};
+            final int[] heightMM = {0};
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetMonitorPhysicalSize({}, {}, {})", mHandle, widthMM, heightMM);
 
@@ -608,9 +636,22 @@ public class GLWindow {
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, {})", VERSION_MINOR);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, VERSION_MINOR);
 
-            if (VERSION_MAJOR == 3 && VERSION_MINOR == 2 || VERSION_MAJOR > 3) {
-                GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)");
-                glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+            switch (CLIENT_API) {
+                case VULKAN:
+                    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+                    break;
+                case OPENGL:
+                    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+                    if (VERSION_MAJOR == 3 && VERSION_MINOR == 2 || VERSION_MAJOR > 3) {
+                        GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)");
+                        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+                    }
+                    break;
+                case OPENGLES:
+                    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+                    break;
+                default:
+                    throw new IllegalStateException("Unsupported client API: " + CLIENT_API);
             }
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_SAMPLES, {})", OPENGL_SAMPLES);
@@ -653,12 +694,11 @@ public class GLWindow {
 
             GL.createCapabilities();
 
-
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwSwapInterval({})", OPENGL_SWAP_INTERVAL);
             GLFW.glfwSwapInterval(OPENGL_SWAP_INTERVAL);
 
-            final int[] fbWidth = { 0 };
-            final int[] fbHeight = { 0 };
+            final int[] fbWidth = {0};
+            final int[] fbHeight = {0};
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetFramebufferSize({}, {}, {})", GLWindow.this.window, fbWidth, fbHeight);
             GLFW.glfwGetFramebufferSize(GLWindow.this.window, fbWidth, fbHeight);
@@ -755,8 +795,8 @@ public class GLWindow {
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwSwapInterval({})", OPENGL_SWAP_INTERVAL);
             GLFW.glfwSwapInterval(OPENGL_SWAP_INTERVAL);
 
-            final int[] fbWidth = { 0 };
-            final int[] fbHeight = { 0 };
+            final int[] fbWidth = {0};
+            final int[] fbHeight = {0};
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetFramebufferSize({}, {}, {})", GLWindow.this.window, fbWidth, fbHeight);
             GLFW.glfwGetFramebufferSize(GLWindow.this.window, fbWidth, fbHeight);
@@ -927,8 +967,8 @@ public class GLWindow {
                 throw new GLFWException("GLWindow is not valid!");
             }
 
-            final int[] width = { 0 };
-            final int[] height = { 0 };
+            final int[] width = {0};
+            final int[] height = {0};
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetFramebufferSize({}, {}, {})", GLWindow.this.window, width, height);
             GLFW.glfwGetFramebufferSize(GLWindow.this.window, width, height);
@@ -1009,8 +1049,8 @@ public class GLWindow {
                 throw new GLFWException("GLWindow is not valid!");
             }
 
-            final int[] x = { 0 };
-            final int[] y = { 0 };
+            final int[] x = {0};
+            final int[] y = {0};
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetWindowPos({}, {}, {})", GLWindow.this.window, x, y);
             GLFW.glfwGetWindowPos(GLWindow.this.window, x, y);
@@ -1030,10 +1070,10 @@ public class GLWindow {
                 throw new GLFWException("GLWindow is not valid!");
             }
 
-            final int[] l = { 0 };
-            final int[] t = { 0 };
-            final int[] r = { 0 };
-            final int[] b = { 0 };
+            final int[] l = {0};
+            final int[] t = {0};
+            final int[] r = {0};
+            final int[] b = {0};
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetWindowFrameSize({}, {}, {}, {}, {})", GLWindow.this.window, l, t, r, b);
             GLFW.glfwGetWindowFrameSize(GLWindow.this.window, l, t, r, b);
@@ -1103,13 +1143,13 @@ public class GLWindow {
                 throw new GLFWException("GLWindow is not valid!");
             }
 
-            final int[] w = { 0 };
-            final int[] h = { 0 };
+            final int[] w = {0};
+            final int[] h = {0};
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetWindowSize({}, {}, {})", GLWindow.this.window, w, h);
             GLFW.glfwGetWindowSize(GLWindow.this.window, w, h);
 
-            final int[] size = new int[]{w[0], h[0] };
+            final int[] size = new int[]{w[0], h[0]};
 
             LOGGER.trace(GLOOP_MARKER, "GLWindow[{}].size=<{}, {}>", GLWindow.this.title, size[0], size[1]);
             LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Size Query ###############");
