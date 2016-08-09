@@ -64,6 +64,7 @@ import org.lwjgl.glfw.GLFWWindowIconifyCallback;
 import org.lwjgl.opengl.GL;
 import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
+import org.lwjgl.opengles.GLES;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -697,7 +698,15 @@ public class GLWindow {
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwMakeContextCurrent({})", GLWindow.this.window);
             GLFW.glfwMakeContextCurrent(GLWindow.this.window);
 
-            GL.createCapabilities();
+            switch (CLIENT_API) {
+                case OPENGL:
+                    GL.createCapabilities();
+                    break;
+                case OPENGLES:
+                    GLES.createCapabilities();
+                    break;
+
+            }
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwSwapInterval({})", OPENGL_SWAP_INTERVAL);
             GLFW.glfwSwapInterval(OPENGL_SWAP_INTERVAL);
