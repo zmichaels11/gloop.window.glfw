@@ -36,9 +36,11 @@ import org.lwjgl.glfw.GLFW;
 import static org.lwjgl.glfw.GLFW.GLFW_ALPHA_BITS;
 import static org.lwjgl.glfw.GLFW.GLFW_BLUE_BITS;
 import static org.lwjgl.glfw.GLFW.GLFW_CLIENT_API;
+import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_CREATION_API;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
 import static org.lwjgl.glfw.GLFW.GLFW_DEPTH_BITS;
+import static org.lwjgl.glfw.GLFW.GLFW_EGL_CONTEXT_API;
 import static org.lwjgl.glfw.GLFW.GLFW_GREEN_BITS;
 import static org.lwjgl.glfw.GLFW.GLFW_NO_API;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_API;
@@ -78,7 +80,7 @@ import org.slf4j.MarkerFactory;
  * @since 15.06.24
  */
 public class GLWindow {
-
+    private static final boolean USE_EGL = Boolean.getBoolean("com.longlinkislong.gloop.opengl.use_egl");
     private static final Logger LOGGER = LoggerFactory.getLogger("GLWindow");
     private static final Logger GLFW_LOGGER = LoggerFactory.getLogger("GLFW");
     private static final Marker GLFW_MARKER = MarkerFactory.getMarker("GLFW");
@@ -642,18 +644,27 @@ public class GLWindow {
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, {})", VERSION_MINOR);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, VERSION_MINOR);
 
+            if (USE_EGL) {
+                GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API)");
+                glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
+            }
+            
             switch (CLIENT_API) {
                 case VULKAN:
+                    GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API)");
                     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
                     break;
                 case OPENGL:
+                    GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API)");
                     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+                    
                     if (VERSION_MAJOR == 3 && VERSION_MINOR == 2 || VERSION_MAJOR > 3) {
                         GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)");
                         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
                     }
                     break;
                 case OPENGLES:
+                    GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)");
                     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
                     break;
                 default:
