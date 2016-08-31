@@ -799,43 +799,19 @@ public class GLWindow {
             LOGGER.trace(GLOOP_MARKER, "\tSet fullscreen: {}", this.isFullscreen);
 
             final long monitor = isFullscreen ? GLFW.glfwGetPrimaryMonitor() : NULL;
-            final long newWindow = GLFW.glfwCreateWindow(width, height, title, monitor, GLWindow.this.window);
 
-            if (newWindow == NULL) {
-                throw new GLFWException("Failed to create the GLFW window!");
+            if (monitor != NULL) {
+                final GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
+
+                glfwWindowHint(GLFW_RED_BITS, mode.redBits());
+                glfwWindowHint(GLFW_BLUE_BITS, mode.blueBits());
+                glfwWindowHint(GLFW_GREEN_BITS, mode.greenBits());
+                glfwWindowHint(GLFW_REFRESH_RATE, mode.refreshRate());
+
+                GLFW.glfwSetWindowMonitor(window, monitor, 0, 0, width, height, mode.refreshRate());
+            } else {
+                GLFW.glfwSetWindowMonitor(window, monitor, 0, 0, width, height, GLFW.GLFW_DONT_CARE);
             }
-
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwDestoryWindow({})", GLWindow.this.window);
-            GLFW.glfwDestroyWindow(GLWindow.this.window);
-
-            onContextLost.forEach(Runnable::run);
-
-            WINDOWS.remove(GLWindow.this.window);
-            WINDOWS.put(newWindow, GLWindow.this);
-
-            GLWindow.this.window = newWindow;
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwMakeContextCurrent({})", GLWindow.this.window);
-            GLFW.glfwMakeContextCurrent(GLWindow.this.window);
-
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwSwapInterval({})", OPENGL_SWAP_INTERVAL);
-            GLFW.glfwSwapInterval(OPENGL_SWAP_INTERVAL);
-
-            final int[] fbWidth = {0};
-            final int[] fbHeight = {0};
-
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetFramebufferSize({}, {}, {})", GLWindow.this.window, fbWidth, fbHeight);
-            GLFW.glfwGetFramebufferSize(GLWindow.this.window, fbWidth, fbHeight);
-
-            GLWindow.this.handler.register();
-            GLFW.glfwSetKeyCallback(GLWindow.this.window, GLWindow.this.keyCallback.get());
-            GLFW.glfwSetMouseButtonCallback(GLWindow.this.window, GLWindow.this.mouseButtonCallback.get());
-            GLFW.glfwSetCursorEnterCallback(GLWindow.this.window, GLWindow.this.cursorEnterCallback.get());
-            GLFW.glfwSetCursorPosCallback(GLWindow.this.window, GLWindow.this.cursorPosCallback.get());
-            GLFW.glfwSetScrollCallback(GLWindow.this.window, GLWindow.this.scrollCallback.get());
-            GLFW.glfwSetCharCallback(GLWindow.this.window, GLWindow.this.charCallback.get());
-            GLFW.glfwSetWindowCloseCallback(GLWindow.this.window, GLWindow.this.windowCloseCallback.get());
-
-            GLWindow.this.thread.migrate();
 
             LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Set Fullscreen Task ###############");
         }
