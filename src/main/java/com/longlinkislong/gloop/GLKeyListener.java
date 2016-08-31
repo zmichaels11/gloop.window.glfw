@@ -32,19 +32,46 @@ import java.util.Set;
  * @author zmichaels
  */
 public interface GLKeyListener {
+
     void keyActionPerformed(
-            GLWindow window, 
-            int key, int scancode, 
-            GLKeyAction action, 
+            GLWindow window,
+            int key, int scancode,
+            GLKeyAction action,
             Set<GLKeyModifier> mods);
-    
+
     default void glfwCallback(long hwnd, int key, int scancode, int action, int mods) {
         final GLWindow window = GLWindow.WINDOWS.get(hwnd);
-        
+
         this.keyActionPerformed(
                 window,
                 key, scancode,
                 GLKeyAction.valueOf(action),
                 GLKeyModifier.parseModifiers(mods));
+    }
+
+    /**
+     * Creates a new GLKeyListener for the specified key and modifier. When
+     * triggererd, the window fullscreen mode is toggled.
+     *
+     * @param key the key to listen for.
+     * @param mods the modifiers to listen for.
+     * @return the GLKeyListener.
+     * @since 16.08.31
+     */
+    public static GLKeyListener newFullscreenToggleListener(final int key, final Set<GLKeyModifier> mods) {
+        return new GLKeyListener() {
+            private boolean isFullscreen = false;
+
+            @Override
+            public void keyActionPerformed(GLWindow _window, int _key, int scancode, GLKeyAction _action, Set<GLKeyModifier> _mods) {
+                if (_action == GLKeyAction.KEY_RELEASE) {
+                    if (_key == key && _mods.containsAll(mods)) {
+                        this.isFullscreen = !this.isFullscreen;
+                        _window.setFullscreen(isFullscreen);
+                    }
+                }
+            }
+
+        };
     }
 }
