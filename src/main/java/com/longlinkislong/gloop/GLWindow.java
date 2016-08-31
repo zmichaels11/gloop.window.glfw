@@ -825,7 +825,6 @@ public class GLWindow {
 
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetFramebufferSize({}, {}, {})", GLWindow.this.window, fbWidth, fbHeight);
             GLFW.glfwGetFramebufferSize(GLWindow.this.window, fbWidth, fbHeight);
-            GLWindow.this.thread.currentViewport = new GLViewport(0, 0, fbWidth[0], fbHeight[0]);
 
             GLWindow.this.handler.register();
             GLFW.glfwSetKeyCallback(GLWindow.this.window, GLWindow.this.keyCallback.get());
@@ -835,6 +834,8 @@ public class GLWindow {
             GLFW.glfwSetScrollCallback(GLWindow.this.window, GLWindow.this.scrollCallback.get());
             GLFW.glfwSetCharCallback(GLWindow.this.window, GLWindow.this.charCallback.get());
             GLFW.glfwSetWindowCloseCallback(GLWindow.this.window, GLWindow.this.windowCloseCallback.get());
+
+            GLWindow.this.thread.migrate();
 
             LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Set Fullscreen Task ###############");
         }
