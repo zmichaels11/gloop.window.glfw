@@ -941,6 +941,11 @@ public class GLWindow {
         new SetWindowSizeTask(width, height).glRun(this.getGLThread());
     }
 
+    /**
+     * Sets the position of this window.
+     * @param x the x coordinate of the window
+     * @param y the y coordinate of the window
+     */
     public void setPosition(final int x, final int y){
         new SetWindowPositionTask(x, y).glRun(this.getGLThread());
     }
