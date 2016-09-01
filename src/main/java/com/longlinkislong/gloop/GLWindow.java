@@ -941,6 +941,10 @@ public class GLWindow {
         new SetWindowSizeTask(width, height).glRun(this.getGLThread());
     }
 
+    public void setPosition(final int x, final int y){
+        new SetWindowPositionTask(x, y).glRun(this.getGLThread());
+    }
+
     public class SetWindowSizeTask extends GLTask {
 
         final int width;
@@ -970,6 +974,34 @@ public class GLWindow {
             GLFW.glfwSetWindowSize(GLWindow.this.window, this.width, this.height);
 
             LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Set Window Size Task ###############");
+        }
+
+    }
+
+    public class SetWindowPositionTask extends GLTask {
+
+        final int x;
+        final int y;
+
+        public SetWindowPositionTask(final int x, final int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        @Override
+        public void run() {
+            LOGGER.trace(GLOOP_MARKER, "############### Start GLWindow Set Window Size Task ###############");
+            LOGGER.trace(GLOOP_MARKER, "\tSetting position of GLWindow[{}]", GLWindow.this.title);
+            LOGGER.trace(GLOOP_MARKER, "\tPosition: <{}, {}>", this.x, this.y);
+
+            if (!GLWindow.this.isValid()) {
+                throw new GLFWException("GLWindow is not valid!");
+            }
+
+            GLFW_LOGGER.trace(GLFW_MARKER, "glfwSetWindowSize({}, {}, {})", GLWindow.this.window, this.x, this.y);
+            GLFW.glfwSetWindowPos(GLWindow.this.window, this.x, this.y);
+
+            LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Set Window Position Task ###############");
         }
 
     }
