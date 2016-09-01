@@ -80,6 +80,7 @@ import org.slf4j.MarkerFactory;
  * @since 15.06.24
  */
 public class GLWindow {
+
     private static final boolean USE_EGL = Boolean.getBoolean("com.longlinkislong.gloop.opengl.use_egl");
     private static final Logger LOGGER = LoggerFactory.getLogger("GLWindow");
     private static final Logger GLFW_LOGGER = LoggerFactory.getLogger("GLFW");
@@ -648,7 +649,7 @@ public class GLWindow {
                 GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API)");
                 glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
             }
-            
+
             switch (CLIENT_API) {
                 case VULKAN:
                     GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API)");
@@ -657,7 +658,7 @@ public class GLWindow {
                 case OPENGL:
                     GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API)");
                     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
-                    
+
                     if (VERSION_MAJOR == 3 && VERSION_MINOR == 2 || VERSION_MAJOR > 3) {
                         GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)");
                         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -749,15 +750,59 @@ public class GLWindow {
     }
 
     /**
-     * Toggles fullscreen for the window. Note: this will destroy the current
-     * OpenGL context and create a new one. Some objects such as Vertex Array
-     * Objects will be lost.
+     * Retrieves the width of the primary monitor in pixels.
      *
-     * @param fullscreen the fullscreen setting.
-     * @since 15.10.30
+     * @return the width of the primary monitor in pixels.
+     * @since 16.08.31
+     */
+    public static int getPrimaryMonitorWidth() {
+        final long primary = GLFW.glfwGetPrimaryMonitor();
+
+        try (GLFWVidMode mode = GLFW.glfwGetVideoMode(primary)) {
+            return mode.width();
+        }
+    }
+
+    /**
+     * Retrieves the height of the primary monitor in pixels.
+     *
+     * @return the height of the primary monitor.
+     * @since 16.08.31
+     */
+    public static int getPrimaryMonitorHeight() {
+        final long primary = GLFW.glfwGetPrimaryMonitor();
+
+        try (final GLFWVidMode mode = GLFW.glfwGetVideoMode(primary)) {
+            return mode.height();
+        }
+    }
+
+    /**
+     * Sets the fullscreen state for the window. This will use the current
+     * window's size for setting the fullscreen. If the window size and monitor
+     * size match, windowed fullscreen mode will be used.
+     *
+     * @param fullscreen the fullscreen settings.
+     * @since 16.08.31
      */
     public void setFullscreen(final boolean fullscreen) {
-        new SetFullscreenTask(fullscreen).glRun();
+        new SetFullscreenTask(fullscreen, GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE).glRun(this.getGLThread());
+    }
+
+    /**
+     * Sets the fullscreen state for the window. If the width and height match
+     * the primary monitor size, then windowed fullscreen is used.
+     *
+     * @param fullscreen the fullscreen setting.
+     * @param preferredWidth the maximized width.
+     * @param preferredHeight the maximized height.
+     * @since 15.10.30
+     */
+    public void setFullscreen(
+            final boolean fullscreen,
+            final int preferredWidth, final int preferredHeight) {
+
+        new SetFullscreenTask(fullscreen, preferredWidth, preferredHeight).glRun(this.getGLThread());
     }
 
     private final List<Runnable> onContextLost = new ArrayList<>(0);
@@ -787,9 +832,13 @@ public class GLWindow {
     private class SetFullscreenTask extends GLTask {
 
         private final boolean isFullscreen;
+        private final int preferredWidth;
+        private final int preferredHeight;
 
-        SetFullscreenTask(boolean useFS) {
+        SetFullscreenTask(boolean useFS, final int preferredWidth, final int preferredHeight) {
             this.isFullscreen = useFS;
+            this.preferredWidth = (preferredWidth == GLFW.GLFW_DONT_CARE) ? GLWindow.this.width : preferredWidth;
+            this.preferredHeight = (preferredHeight == GLFW.GLFW_DONT_CARE) ? GLWindow.this.height : preferredHeight;
         }
 
         @Override
@@ -801,16 +850,16 @@ public class GLWindow {
             final long monitor = isFullscreen ? GLFW.glfwGetPrimaryMonitor() : NULL;
 
             if (monitor != NULL) {
-                final GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
+                try (final GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor)) {
+                    glfwWindowHint(GLFW_RED_BITS, mode.redBits());
+                    glfwWindowHint(GLFW_BLUE_BITS, mode.blueBits());
+                    glfwWindowHint(GLFW_GREEN_BITS, mode.greenBits());
+                    glfwWindowHint(GLFW_REFRESH_RATE, mode.refreshRate());
 
-                glfwWindowHint(GLFW_RED_BITS, mode.redBits());
-                glfwWindowHint(GLFW_BLUE_BITS, mode.blueBits());
-                glfwWindowHint(GLFW_GREEN_BITS, mode.greenBits());
-                glfwWindowHint(GLFW_REFRESH_RATE, mode.refreshRate());
-
-                GLFW.glfwSetWindowMonitor(window, monitor, 0, 0, width, height, mode.refreshRate());
+                    GLFW.glfwSetWindowMonitor(window, monitor, 0, 0, this.preferredWidth, this.preferredHeight, mode.refreshRate());
+                }
             } else {
-                GLFW.glfwSetWindowMonitor(window, monitor, 0, 0, width, height, GLFW.GLFW_DONT_CARE);
+                GLFW.glfwSetWindowMonitor(window, monitor, 0, 0, this.preferredWidth, this.preferredHeight, GLFW.GLFW_DONT_CARE);
             }
 
             LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Set Fullscreen Task ###############");
