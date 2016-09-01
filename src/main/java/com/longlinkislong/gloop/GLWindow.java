@@ -757,10 +757,9 @@ public class GLWindow {
      */
     public static int getPrimaryMonitorWidth() {
         final long primary = GLFW.glfwGetPrimaryMonitor();
+        final GLFWVidMode mode = GLFW.glfwGetVideoMode(primary);
 
-        try (GLFWVidMode mode = GLFW.glfwGetVideoMode(primary)) {
-            return mode.width();
-        }
+        return mode.width();
     }
 
     /**
@@ -771,10 +770,9 @@ public class GLWindow {
      */
     public static int getPrimaryMonitorHeight() {
         final long primary = GLFW.glfwGetPrimaryMonitor();
+        final GLFWVidMode mode = GLFW.glfwGetVideoMode(primary);
 
-        try (final GLFWVidMode mode = GLFW.glfwGetVideoMode(primary)) {
-            return mode.height();
-        }
+        return mode.height();
     }
 
     /**
@@ -850,14 +848,14 @@ public class GLWindow {
             final long monitor = isFullscreen ? GLFW.glfwGetPrimaryMonitor() : NULL;
 
             if (monitor != NULL) {
-                try (final GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor)) {
-                    glfwWindowHint(GLFW_RED_BITS, mode.redBits());
-                    glfwWindowHint(GLFW_BLUE_BITS, mode.blueBits());
-                    glfwWindowHint(GLFW_GREEN_BITS, mode.greenBits());
-                    glfwWindowHint(GLFW_REFRESH_RATE, mode.refreshRate());
+                final GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
 
-                    GLFW.glfwSetWindowMonitor(window, monitor, 0, 0, this.preferredWidth, this.preferredHeight, mode.refreshRate());
-                }
+                glfwWindowHint(GLFW_RED_BITS, mode.redBits());
+                glfwWindowHint(GLFW_BLUE_BITS, mode.blueBits());
+                glfwWindowHint(GLFW_GREEN_BITS, mode.greenBits());
+                glfwWindowHint(GLFW_REFRESH_RATE, mode.refreshRate());
+
+                GLFW.glfwSetWindowMonitor(window, monitor, 0, 0, this.preferredWidth, this.preferredHeight, mode.refreshRate());
             } else {
                 GLFW.glfwSetWindowMonitor(window, monitor, 0, 0, this.preferredWidth, this.preferredHeight, GLFW.GLFW_DONT_CARE);
             }
