@@ -103,7 +103,11 @@ public class GLGamepad {
      * @since 15.11.11
      */
     public GLGamepadState getButtonState(final int buttonId) {
-        return this.buttons[buttonId];
+        if (buttonId < this.buttons.length) {
+            return this.buttons[buttonId];
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -115,7 +119,11 @@ public class GLGamepad {
      * @since 15.11.11
      */
     public float getAxesState(final int axes) {
-        return this.axes[axes];
+        if (axes < this.axes.length) {
+            return this.axes[axes];
+        } else {
+            return 0;
+        }
     }
 
     /**
