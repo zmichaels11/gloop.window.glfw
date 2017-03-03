@@ -70,10 +70,9 @@ dependencies {
     compile "com.longlinkislong:gloop-vectors:${getVersion('gloop-vectors')}"
     compile "com.runouw:wrappers:${getVersion('wrappers')}"
     
-    compile "org.lwjgl:lwjgl:3.0.0"
-    compile "org.lwjgl:lwjgl-platform:3.0.0:natives-windows"
-    compile "org.lwjgl:lwjgl-platform:3.0.0:natives-linux"
-    compile "org.lwjgl:lwjgl-platform:3.0.0:natives-osx"      
+    compile "org.lwjgl:lwjgl-opengl:3.1.1"
+    compile "org.lwjgl:lwjgl-opengles:3.1.1"
+    compile "org.lwjgl:lwjgl-glfw:3.1.1"
 
     testCompile group: 'junit', name: 'junit', version: '4.10'
 }

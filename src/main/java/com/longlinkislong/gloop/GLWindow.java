@@ -80,7 +80,7 @@ import org.slf4j.MarkerFactory;
  * @since 15.06.24
  */
 public class GLWindow {
-
+    
     private static final boolean USE_EGL = Boolean.getBoolean("com.longlinkislong.gloop.opengl.use_egl");
     private static final Logger LOGGER = LoggerFactory.getLogger("GLWindow");
     private static final Logger GLFW_LOGGER = LoggerFactory.getLogger("GLFW");
@@ -125,8 +125,7 @@ public class GLWindow {
         final GLFWCharCallback callback = GLFWCharCallback.create((hwnd, charCode) -> {
             this.charListeners.forEach(listener -> listener.glfwCharCallback(hwnd, charCode));
         });
-
-        LOGGER.trace(GLFW_MARKER, "GLWindow[{}].charCallback is initialized!", GLWindow.this.title);
+        
         return callback;
     });
 
@@ -135,7 +134,6 @@ public class GLWindow {
             keyListeners.forEach(listener -> listener.glfwCallback(hwnd, key, scancode, action, mods));
         });
 
-        LOGGER.trace(GLFW_MARKER, "GLWindow[{}].keyCallback is initialized!", GLWindow.this.title);
         return callback;
     });
 
@@ -144,7 +142,6 @@ public class GLWindow {
             this.mouseButtonListeners.forEach(listener -> listener.glfwMouseButtonCallback(hwnd, button, action, mods));
         });
 
-        LOGGER.trace(GLFW_MARKER, "GLWindow[{}].mouseButtonCallback is initialized!", GLWindow.this.title);
         return callback;
     });
 
@@ -152,8 +149,7 @@ public class GLWindow {
         final GLFWCursorPosCallback callback = GLFWCursorPosCallback.create((hwnd, x, y) -> {
             this.mousePositionListeners.forEach(listener -> listener.glfwCursorPosCallback(hwnd, x, y));
         });
-
-        LOGGER.trace(GLFW_MARKER, "GLWindow[{}].cursorPosCallback is initialized!", GLWindow.this.title);
+        
         return callback;
     });
 
@@ -162,7 +158,6 @@ public class GLWindow {
             this.mouseScrollListeners.forEach(listener -> listener.glfwScrollCallback(hwnd, x, y));
         });
 
-        LOGGER.trace(GLFW_MARKER, "GLWindow[{}].scrollCallback is initialized!", GLWindow.this.title);
         return callback;
     });
 
@@ -173,7 +168,6 @@ public class GLWindow {
             this.mouseEnteredListeners.forEach(listener -> listener.glfwCursorEnteredCallback(hwnd, iStatus));
         });
 
-        LOGGER.trace(GLFW_MARKER, "GLWindow[{}].cursorEnterCallback is initialized!", GLWindow.this.title);
         return callback;
     });
 
@@ -181,7 +175,7 @@ public class GLWindow {
         final GLFWWindowCloseCallback callback = GLFWWindowCloseCallback.create((hwnd) -> {
             this.beforeClose.ifPresent(Runnable::run);
         });
-        LOGGER.trace(GLFW_MARKER, "GLWindow[{}].windowCloseCallback is initialized!", GLWindow.this.title);
+        
         return callback;
     });
 
@@ -195,7 +189,7 @@ public class GLWindow {
             // TODO: call resize callbacks?
 
         });
-        LOGGER.trace(GLFW_MARKER, "GLWindow[{}].windowCloseCallback is initialized!", GLWindow.this.title);
+
         return callback;
     });
 
@@ -220,8 +214,7 @@ public class GLWindow {
     protected static final Map<Long, GLWindow> WINDOWS = new TreeMap<>(Long::compareTo);
     private static final List<GLGamepad> GAMEPADS;
 
-    static {
-        NativeTools.getInstance().autoLoad();
+    static {        
         final String glVersion = System.getProperty("com.longlinkislong.gloop.opengl.version", "1.0");
         VERSION_MAJOR = Integer.parseInt(glVersion.substring(0, glVersion.indexOf(".")));
         VERSION_MINOR = Integer.parseInt(glVersion.substring(glVersion.indexOf(".") + 1));
@@ -268,8 +261,7 @@ public class GLWindow {
 
             GLFW_LOGGER.error(GLFW_MARKER, "GLFW Error #{}: {}", error, msg);
         });
-
-        GLFW_LOGGER.trace(GLFW_MARKER, "glfwSetErrorCallback({})", errCallback);
+        
 
         GLFW.glfwSetErrorCallback(errCallback);
 
@@ -317,8 +309,7 @@ public class GLWindow {
      * @param onBeforeCloseCallback the callback to run
      * @since 15.06.24
      */
-    public void setOnBeforeClose(final Runnable onBeforeCloseCallback) {
-        LOGGER.trace(GLFW_MARKER, "GLWindow[{}].onBeforeClose = {}", this.title, onBeforeCloseCallback);
+    public void setOnBeforeClose(final Runnable onBeforeCloseCallback) {       
         this.beforeClose = Optional.ofNullable(onBeforeCloseCallback);
     }
 
@@ -328,8 +319,7 @@ public class GLWindow {
      * @param onCloseCallback the callback to run
      * @since 15.06.24
      */
-    public void setOnClose(final Runnable onCloseCallback) {
-        LOGGER.trace(GLFW_MARKER, "GLWindow[{}].onClose = {}", this.title, onCloseCallback);
+    public void setOnClose(final Runnable onCloseCallback) {        
         this.onClose = Optional.ofNullable(onCloseCallback);
     }
 
@@ -340,8 +330,7 @@ public class GLWindow {
      * @param onMinimizeCallback the callback to run
      * @since 15.06.24
      */
-    public void setOnMinimize(final Runnable onMinimizeCallback) {
-        LOGGER.trace(GLFW_MARKER, "GLWindow[{}].onMinimize = {}", this.title, onMinimizeCallback);
+    public void setOnMinimize(final Runnable onMinimizeCallback) {        
         this.onMinimize = Optional.ofNullable(onMinimizeCallback);
     }
 
@@ -352,8 +341,7 @@ public class GLWindow {
      * @param onRestoreCallback the callback to run
      * @since 15.06.24
      */
-    public void setOnRestore(final Runnable onRestoreCallback) {
-        LOGGER.trace(GLFW_MARKER, "GLWindow[{}].onRestore = {}", this.title, onRestoreCallback);
+    public void setOnRestore(final Runnable onRestoreCallback) {        
         this.onRestore = Optional.ofNullable(onRestoreCallback);
     }
 
@@ -417,7 +405,7 @@ public class GLWindow {
 
         this.thread = GLThread.create();
 
-        LOGGER.debug(GLFW_MARKER, "Constructed GLWindow! [width={}, height={}, title={}, parent={}]", width, height, title, shared != null ? shared.title : "null");
+        LOGGER.trace(GLFW_MARKER, "Constructed GLWindow! [width={}, height={}, title={}, parent={}]", width, height, title, shared != null ? shared.title : "null");
         LOGGER.trace(GLFW_MARKER, "Constructed GLWindow.thread = {}", this.thread);
 
         this.thread.submitGLTask(new InitTask());
@@ -596,33 +584,22 @@ public class GLWindow {
     public class DPIQuery extends GLQuery<Double> {
 
         @Override
-        public Double call() throws Exception {
-            LOGGER.trace(GLOOP_MARKER, "############### Start GLWindow DPI Query ###############");
-            LOGGER.trace(GLOOP_MARKER, "\tQuerying GLWindow[{}]", GLWindow.this.window);
-
+        public Double call() throws Exception {           
             if (!GLWindow.this.isValid()) {
                 throw new GLFWException("GLWindow is not valid!");
             }
 
-            final long m = GLWindow.this.monitor == 0 ? GLFW.glfwGetPrimaryMonitor() : GLWindow.this.monitor;
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetWindowMonitor({})", m);
-            final long mHandle = GLFW.glfwGetWindowMonitor(m);
-
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetVideoMode({})", mHandle);
+            final long m = GLWindow.this.monitor == 0 ? GLFW.glfwGetPrimaryMonitor() : GLWindow.this.monitor;            
+            final long mHandle = GLFW.glfwGetWindowMonitor(m);            
             final GLFWVidMode mode = GLFW.glfwGetVideoMode(mHandle);
 
             final int[] widthMM = {0};
-            final int[] heightMM = {0};
-
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetMonitorPhysicalSize({}, {}, {})", mHandle, widthMM, heightMM);
+            final int[] heightMM = {0};            
 
             GLFW.glfwGetMonitorPhysicalSize(mHandle, widthMM, heightMM);
 
             final int vWidth = mode.width();
-            final double dpi = (vWidth / (widthMM[0] / 25.4 /* mm to in */));
-
-            LOGGER.trace(GLOOP_MARKER, "GLWindow[{}].dpi = {}", GLWindow.this.window, dpi);
-            LOGGER.trace(GLOOP_MARKER, "############### End GLWindow DPI Query ###############");
+            final double dpi = (vWidth / (widthMM[0] / 25.4 /* mm to in */));            
 
             return dpi;
         }
@@ -631,10 +608,7 @@ public class GLWindow {
     private class InitTask extends GLTask {
 
         @Override
-        public void run() {
-            LOGGER.trace(GLOOP_MARKER, "############### Start GLWindow Init task ###############");
-            LOGGER.trace(GLOOP_MARKER, "\tInitializing GLWindow[{}]", GLWindow.this.title);
-
+        public void run() {            
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_VISIBLE, GL_FALSE)");
             glfwWindowHint(GLFW.GLFW_VISIBLE, GL_FALSE);
             GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_RESIZABLE, GL_TRUE)");
@@ -659,10 +633,15 @@ public class GLWindow {
                     GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API)");
                     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
 
-                    if (VERSION_MAJOR == 3 && VERSION_MINOR == 2 || VERSION_MAJOR > 3) {
+                    if (VERSION_MAJOR == 3) {
+                        if (VERSION_MINOR == 2 || VERSION_MINOR == 3) {
+                            GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)");
+                            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+                        }
+                    } else if (VERSION_MAJOR > 3) {
                         GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)");
                         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-                    }
+                    }                    
                     break;
                 case OPENGLES:
                     GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)");
@@ -706,8 +685,7 @@ public class GLWindow {
             if (GLWindow.this.window == NULL) {
                 throw new GLFWException("Failed to create the GLFW window!");
             }
-
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwMakeContextCurrent({})", GLWindow.this.window);
+            
             GLFW.glfwMakeContextCurrent(GLWindow.this.window);
 
             switch (CLIENT_API) {
@@ -725,8 +703,7 @@ public class GLWindow {
 
             final int[] fbWidth = {0};
             final int[] fbHeight = {0};
-
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetFramebufferSize({}, {}, {})", GLWindow.this.window, fbWidth, fbHeight);
+            
             GLFW.glfwGetFramebufferSize(GLWindow.this.window, fbWidth, fbHeight);
 
             GLWindow.this.thread.currentViewport = new GLViewport(0, 0, fbWidth[0], fbHeight[0]);
@@ -743,9 +720,6 @@ public class GLWindow {
             GLFW.glfwSetCharCallback(GLWindow.this.window, GLWindow.this.charCallback.get());
             GLFW.glfwSetWindowCloseCallback(GLWindow.this.window, GLWindow.this.windowCloseCallback.get());
             GLFW.glfwSetWindowIconifyCallback(GLWindow.this.window, GLWindow.this.windowIconifyCallback.get());
-
-            LOGGER.trace(GLOOP_MARKER, "GLWindow[{}] is initialized!", GLWindow.this.title);
-            LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Init Task ###############");
         }
     }
 
@@ -811,8 +785,7 @@ public class GLWindow {
      * @param callback method to run when the OpenGL context is lost.
      * @since 15.10.30
      */
-    public void addContextLostListener(final Runnable callback) {
-        LOGGER.trace(GLOOP_MARKER, "GLWindow[{}]: Adding callback for contextLost[{}]", this.title, callback);
+    public void addContextLostListener(final Runnable callback) {        
         this.onContextLost.add(callback);
     }
 
@@ -822,8 +795,7 @@ public class GLWindow {
      * @param callback the callback to remove.
      * @since 15.10.30
      */
-    public void removeContextLostListener(final Runnable callback) {
-        LOGGER.trace(GLOOP_MARKER, "GLWindow[{}]: Removing callback for contextLost[{}]", this.title, callback);
+    public void removeContextLostListener(final Runnable callback) {        
         this.onContextLost.remove(callback);
     }
 
@@ -840,11 +812,7 @@ public class GLWindow {
         }
 
         @Override
-        public void run() {
-            LOGGER.trace(GLOOP_MARKER, "############### Start GLWindow Set Fullscreen Task ###############");
-            LOGGER.trace(GLOOP_MARKER, "\tApplying to GLWindow[{}]", GLWindow.this.title);
-            LOGGER.trace(GLOOP_MARKER, "\tSet fullscreen: {}", this.isFullscreen);
-
+        public void run() {            
             final long monitor = isFullscreen ? GLFW.glfwGetPrimaryMonitor() : NULL;
 
             if (monitor != NULL) {
@@ -859,8 +827,6 @@ public class GLWindow {
             } else {
                 GLFW.glfwSetWindowMonitor(window, monitor, 0, 0, this.preferredWidth, this.preferredHeight, GLFW.GLFW_DONT_CARE);
             }
-
-            LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Set Fullscreen Task ###############");
         }
 
     }
@@ -907,24 +873,16 @@ public class GLWindow {
         }
 
         @Override
-        public void run() {
-            LOGGER.trace(GLOOP_MARKER, "############### Start GLWindow Set Window Visibility Task ###############");
-            LOGGER.trace(GLOOP_MARKER, "\tSetting visibility of GLWindow[{}]", GLWindow.this.title);
-            LOGGER.trace(GLOOP_MARKER, "\tVisibility: {}", this.visibility);
-
+        public void run() {            
             if (!GLWindow.this.isValid()) {
                 throw new GLFWException("GLWindow is not valid!");
             }
 
-            if (this.visibility) {
-                GLFW_LOGGER.trace(GLFW_MARKER, "glfwShowWindow({})", GLWindow.this.window);
+            if (this.visibility) {                
                 GLFW.glfwShowWindow(GLWindow.this.window);
-            } else {
-                GLFW_LOGGER.trace(GLFW_MARKER, "glfwHideWindow({})", GLWindow.this.window);
+            } else {                
                 GLFW.glfwHideWindow(GLWindow.this.window);
-            }
-
-            LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Set Window Visibility Task ###############");
+            }            
         }
     }
 
@@ -966,19 +924,12 @@ public class GLWindow {
         }
 
         @Override
-        public void run() {
-            LOGGER.trace(GLOOP_MARKER, "############### Start GLWindow Set Window Size Task ###############");
-            LOGGER.trace(GLOOP_MARKER, "\tSetting size of GLWindow[{}]", GLWindow.this.title);
-            LOGGER.trace(GLOOP_MARKER, "\tSize: <{}, {}>", this.width, this.height);
-
+        public void run() {            
             if (!GLWindow.this.isValid()) {
                 throw new GLFWException("GLWindow is not valid!");
             }
-
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwSetWindowSize({}, {}, {})", GLWindow.this.window, this.width, this.height);
+            
             GLFW.glfwSetWindowSize(GLWindow.this.window, this.width, this.height);
-
-            LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Set Window Size Task ###############");
         }
 
     }
@@ -994,19 +945,12 @@ public class GLWindow {
         }
 
         @Override
-        public void run() {
-            LOGGER.trace(GLOOP_MARKER, "############### Start GLWindow Set Window Size Task ###############");
-            LOGGER.trace(GLOOP_MARKER, "\tSetting position of GLWindow[{}]", GLWindow.this.title);
-            LOGGER.trace(GLOOP_MARKER, "\tPosition: <{}, {}>", this.x, this.y);
-
+        public void run() {            
             if (!GLWindow.this.isValid()) {
                 throw new GLFWException("GLWindow is not valid!");
             }
-
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwSetWindowSize({}, {}, {})", GLWindow.this.window, this.x, this.y);
+            
             GLFW.glfwSetWindowPos(GLWindow.this.window, this.x, this.y);
-
-            LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Set Window Position Task ###############");
         }
 
     }
@@ -1046,23 +990,16 @@ public class GLWindow {
 
         @Override
         public int[] call() throws Exception {
-            LOGGER.trace(GLOOP_MARKER, "############### Start GLWindow Framebuffer Size Query ###############");
-            LOGGER.trace(GLOOP_MARKER, "\tQuerying framebuffer size of GLWindow[{}]", GLWindow.this.title);
-
             if (!GLWindow.this.isValid()) {
                 throw new GLFWException("GLWindow is not valid!");
             }
 
             final int[] width = {0};
             final int[] height = {0};
-
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetFramebufferSize({}, {}, {})", GLWindow.this.window, width, height);
+            
             GLFW.glfwGetFramebufferSize(GLWindow.this.window, width, height);
 
             final int[] size = new int[]{width[0], height[0]};
-
-            LOGGER.trace(GLOOP_MARKER, "GLWindow[{}] framebuffer size: <{}, {}>", size[0], size[1]);
-            LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Framebuffer Size Query ###############");
 
             return size;
         }
@@ -1093,8 +1030,7 @@ public class GLWindow {
         }
 
         @Override
-        public void run() {
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwSetCursor({}, {})", GLWindow.this.window, this.cursorId);
+        public void run() {            
             GLFW.glfwSetCursor(GLWindow.this.window, this.cursorId);
         }
 
@@ -1137,8 +1073,7 @@ public class GLWindow {
 
             final int[] x = {0};
             final int[] y = {0};
-
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetWindowPos({}, {}, {})", GLWindow.this.window, x, y);
+            
             GLFW.glfwGetWindowPos(GLWindow.this.window, x, y);
 
             return new int[]{x[0], y[0]};
@@ -1149,9 +1084,6 @@ public class GLWindow {
 
         @Override
         public int[] call() throws Exception {
-            LOGGER.trace(GLOOP_MARKER, "############### Start GLWindow Window Frame Size Query ###############");
-            LOGGER.trace(GLOOP_MARKER, "\tQuerying window frame size of GLWindow[{}]", GLWindow.this.title);
-
             if (!GLWindow.this.isValid()) {
                 throw new GLFWException("GLWindow is not valid!");
             }
@@ -1160,17 +1092,11 @@ public class GLWindow {
             final int[] t = {0};
             final int[] r = {0};
             final int[] b = {0};
-
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetWindowFrameSize({}, {}, {}, {}, {})", GLWindow.this.window, l, t, r, b);
+            
             GLFW.glfwGetWindowFrameSize(GLWindow.this.window, l, t, r, b);
 
             final int[] size = new int[]{l[0], t[0], r[0], b[0]};
 
-            LOGGER.trace(GLOOP_MARKER, "GLWindow[{}].size=<{}, {}, {}, {}>",
-                    GLWindow.this.title,
-                    size[0], size[1], size[2], size[3]);
-
-            LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Window Size Query ###############");
             return size;
         }
     }
@@ -1222,9 +1148,6 @@ public class GLWindow {
 
         @Override
         public int[] call() throws Exception {
-            LOGGER.trace(GLOOP_MARKER, "############### Start GLWindow Size Query ###############");
-            LOGGER.trace(GLOOP_MARKER, "\tQuerying window size of GLWindow[{}]", GLWindow.this.title);
-
             if (!GLWindow.this.isValid()) {
                 throw new GLFWException("GLWindow is not valid!");
             }
@@ -1232,13 +1155,9 @@ public class GLWindow {
             final int[] w = {0};
             final int[] h = {0};
 
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwGetWindowSize({}, {}, {})", GLWindow.this.window, w, h);
             GLFW.glfwGetWindowSize(GLWindow.this.window, w, h);
 
             final int[] size = new int[]{w[0], h[0]};
-
-            LOGGER.trace(GLOOP_MARKER, "GLWindow[{}].size=<{}, {}>", GLWindow.this.title, size[0], size[1]);
-            LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Size Query ###############");
 
             return size;
         }
@@ -1267,6 +1186,7 @@ public class GLWindow {
         if (!this.isValid()) {
             throw new GLFWException("Invalid GLWindow!");
         }
+        
         this.updateTask.glRun(this.getGLThread());
     }
 
@@ -1280,23 +1200,13 @@ public class GLWindow {
         int frameCount = 0;
 
         @Override
-        public void run() {
-            LOGGER.trace(GLOOP_MARKER, "############### Start GLWindow Update Task ###############");
-            LOGGER.trace(GLOOP_MARKER, "\tUpdating GLWindow[{}]", GLWindow.this.title);
-
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwWindowShouldClose({})", GLWindow.this.window);
+        public void run() {            
             if (GLFW.glfwWindowShouldClose(GLWindow.this.window)) {
                 GLWindow.this.cleanup();
-            } else {
-                GLFW_LOGGER.trace(GLFW_MARKER, "glfwSwapBuffers({})", GLWindow.this.window);
-                GLFW.glfwSwapBuffers(GLWindow.this.window);
-                GLFW_LOGGER.trace(GLFW_MARKER, "glfwPollEvents()");
-                GLFW.glfwPollEvents();
-                GLFW_LOGGER.trace(GLOOP_MARKER, "--------------- FRAME {} END ---------------", frameCount++);
-                GLFW_LOGGER.trace(GLOOP_MARKER, "--------------- FRAME {} START ---------------", frameCount);
-            }
-
-            LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Update Task ###############");
+            } else {                
+                GLFW.glfwSwapBuffers(GLWindow.this.window);                
+                GLFW.glfwPollEvents();                
+            }            
         }
     }
 
@@ -1317,33 +1227,19 @@ public class GLWindow {
     public class CloseTask extends GLTask {
 
         @Override
-        public void run() {
-            LOGGER.trace(GLOOP_MARKER, "############### Start GLWindow Close Task ###############");
-            LOGGER.trace(GLOOP_MARKER, "\tClosing GLWindow[{}]", GLWindow.this.window);
-
+        public void run() {            
             if (!GLWindow.this.isValid()) {
                 throw new GLFWException("GLWindow is not valid!");
             }
-
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwSetWindowShouldClose({}, GL_TRUE)", GLWindow.this.window);
+            
             GLFW.glfwSetWindowShouldClose(GLWindow.this.window, true);
-
-            LOGGER.trace(GLOOP_MARKER, "############### End GLWindow Close Task ###############");
         }
     }
 
-    private void cleanup() {
-        LOGGER.trace(GLFW_MARKER, "Cleaning up resources for GLWindow[{}]", this.title);
-
-        LOGGER.trace(GLFW_MARKER, "Removing tasks...");
+    private void cleanup() {        
         this.cleanupTasks.forEach(Runnable::run);
         this.cleanupTasks.clear();
-
-        LOGGER.trace(GLFW_MARKER, "Stopping worker threads...");
         this.workerThreads.forEach(GLWindow::close);
-
-        LOGGER.trace(GLFW_MARKER, "Releasing callbacks...");
-
         this.cursorEnterCallback.ifInitialized(GLFWCursorEnterCallback::free);
         this.cursorPosCallback.ifInitialized(GLFWCursorPosCallback::free);
         this.keyCallback.ifInitialized(GLFWKeyCallback::free);
@@ -1353,21 +1249,17 @@ public class GLWindow {
         this.resizeCallback.ifPresent(GLFWFramebufferSizeCallback::free);
         this.windowCloseCallback.ifInitialized(GLFWWindowCloseCallback::free);
         this.windowIconifyCallback.ifInitialized(GLFWWindowIconifyCallback::free);
-
-        LOGGER.trace(GLFW_MARKER, "Firing onClose callback...");
+        
         this.onClose.ifPresent(Runnable::run);
 
         // stop everything
-        this.thread.submit(() -> {
-            GLFW_LOGGER.trace(GLFW_MARKER, "glfwDestoryWindow({})", this.window);
+        this.thread.submit(() -> {            
             GLFW.glfwDestroyWindow(this.window);
 
-            WINDOWS.remove(this.window);
-            LOGGER.trace(GLFW_MARKER, "GLWindow[{}] has been destroyed!", this.title);
+            WINDOWS.remove(this.window);            
             this.window = GLWindow.INVALID_WINDOW_ID;
         });
-
-        LOGGER.trace(GLFW_MARKER, "Shutting down thread...");
+        
         this.thread.shutdown();
     }
 
@@ -1385,9 +1277,8 @@ public class GLWindow {
         if (!this.isValid()) {
             throw new GLFWException("Invalid GLWindow!");
         }
-        final GLWindow dummy = new GLWindow(0, 0, "WORKER", this);
-
-        LOGGER.trace(GLFW_MARKER, "GLWindow[{}]: Adding worker thread!", this.title);
+        
+        final GLWindow dummy = new GLWindow(0, 0, "WORKER", this);        
 
         this.workerThreads.add(dummy);
 
@@ -1405,8 +1296,7 @@ public class GLWindow {
      * @param task the task to append.
      * @since 15.06.30
      */
-    public void appendToCleanup(final Runnable task) {
-        LOGGER.trace(GLOOP_MARKER, "GLWindow[{}]: Adding callback for cleanup: {}", this.title, task);
+    public void appendToCleanup(final Runnable task) {        
         this.cleanupTasks.add(task);
     }
 
@@ -1417,8 +1307,7 @@ public class GLWindow {
      * @return true if the task was removed.
      * @since 15.06.30
      */
-    public boolean removeFromCleanup(final Runnable task) {
-        LOGGER.trace(GLOOP_MARKER, "GLWindow[{}]: Removing callback for cleanup: {}", this.title, task);
+    public boolean removeFromCleanup(final Runnable task) {        
         return this.cleanupTasks.remove(task);
     }
 
@@ -1427,8 +1316,7 @@ public class GLWindow {
      *
      * @since 15.06.30
      */
-    public void clearCleanup() {
-        LOGGER.trace(GLOOP_MARKER, "Removing all cleanup callbacks from GLWindow[{}]!", this.title);
+    public void clearCleanup() {        
         this.cleanupTasks.clear();
     }
 
@@ -1441,8 +1329,7 @@ public class GLWindow {
      * @return true if the listener was registered.
      * @since 15.06.24
      */
-    public boolean addWindowResizeListener(final GLFramebufferResizeListener listener) {
-        LOGGER.trace(GLOOP_MARKER, "GLWindow[{}]: Adding callback for windowResize[{}]", this.title, listener);
+    public boolean addWindowResizeListener(final GLFramebufferResizeListener listener) {        
         return this.handler.resizeListeners.add(listener);
     }
 
@@ -1453,8 +1340,7 @@ public class GLWindow {
      * @return true if the listener was removed.
      * @since 15.06.24
      */
-    public boolean removeWindowResizeListener(final GLFramebufferResizeListener listener) {
-        LOGGER.trace(GLOOP_MARKER, "GLWindow[{}]: Removing callback for windowResize[{}]", this.title, listener);
+    public boolean removeWindowResizeListener(final GLFramebufferResizeListener listener) {        
         return this.handler.resizeListeners.remove(listener);
     }
 
